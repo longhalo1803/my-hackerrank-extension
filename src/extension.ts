@@ -37,6 +37,20 @@ export function activate(context: vscode.ExtensionContext) {
     },
   );
 
+  const signinManualCmd = vscode.commands.registerCommand(
+    'hackerrank.signinManual',
+    async () => {
+      outputChannel.appendLine('[Auth] Initiating manual cookie sign-in...');
+      const success = await authManager.loginWithManualCookie();
+      if (success) {
+        outputChannel.appendLine('[Auth] Manual cookie sign-in successful. Refreshing challenges tree.');
+        treeProvider.refresh();
+      } else {
+        outputChannel.appendLine('[Auth] Manual cookie sign-in was cancelled or invalid.');
+      }
+    },
+  );
+
   const checkStatusCmd = vscode.commands.registerCommand(
     'hackerrank.checkStatus',
     async () => {
@@ -128,6 +142,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     signinCmd,
+    signinManualCmd,
     checkStatusCmd,
     logoutCmd,
     refreshCmd,

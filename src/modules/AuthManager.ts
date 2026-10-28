@@ -81,8 +81,23 @@ export class AuthManager {
       ? trimmed
       : `_hrank_session=${trimmed}`;
 
+    let csrfToken: string | undefined;
+    try {
+      const resp = await fetch('https://www.hackerrank.com/auth/login', {
+        headers: { Cookie: formattedCookie }
+      });
+      const html = await resp.text();
+      const match = html.match(/name="csrf-token"\s+content="([^"]+)"/);
+      if (match) {
+        csrfToken = match[1];
+      }
+    } catch {
+      // Non-critical if fetch fails
+    }
+
     await this.saveSession({
       hackerrank_cookie: formattedCookie,
+      csrf_token: csrfToken
     });
 
     vscode.window.showInformationMessage(

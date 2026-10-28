@@ -21,6 +21,10 @@ describe('Extension Lifecycle & Command Registration', () => {
       expect.any(Function),
     );
     expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      'hackerrank.signinManual',
+      expect.any(Function),
+    );
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
       'hackerrank.checkStatus',
       expect.any(Function),
     );
@@ -36,7 +40,7 @@ describe('Extension Lifecycle & Command Registration', () => {
       'hackerrank.openChallenge',
       expect.any(Function),
     );
-    expect(subscriptions.length).toBe(7);
+    expect(subscriptions.length).toBe(8);
   });
 
   it('deactivates cleanly', () => {

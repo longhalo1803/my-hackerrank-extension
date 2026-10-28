@@ -38,7 +38,11 @@
     "commands": [
       {
         "command": "hackerrank.signin",
-        "title": "HackerRank: Sign In"
+        "title": "HackerRank: Sign In (Google OAuth)"
+      },
+      {
+        "command": "hackerrank.signinManual",
+        "title": "HackerRank: Sign In with Cookie (Direct)"
       },
       {
         "command": "hackerrank.checkStatus",
