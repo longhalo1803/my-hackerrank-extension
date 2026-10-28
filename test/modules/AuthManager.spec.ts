@@ -10,8 +10,13 @@ describe('AuthManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     secrets = new MockSecretStorage();
+    const globalStateData = new Map<string, any>();
     mockContext = {
       secrets,
+      globalState: {
+        get: jest.fn((k: string) => globalStateData.get(k)),
+        update: jest.fn(async (k: string, v: any) => { globalStateData.set(k, v); })
+      },
       subscriptions: [],
     } as unknown as vscode.ExtensionContext;
     authManager = new AuthManager(mockContext);
@@ -50,6 +55,22 @@ describe('AuthManager', () => {
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
         'Signed out from HackerRank.',
       );
+    });
+
+    it('gracefully falls back to globalState when OS Keyring throws an error', async () => {
+      secrets.store.mockRejectedValue(new Error('An OS keyring could not be identified'));
+      secrets.get.mockRejectedValue(new Error('An OS keyring could not be identified'));
+
+      await authManager.saveSession({
+        hackerrank_cookie: '_hrank_session=keyring_fallback_cookie',
+        csrf_token: 'csrf_fallback_val'
+      });
+
+      const session = await authManager.getSession();
+      expect(session).not.toBeNull();
+      expect(session?.hackerrank_cookie).toBe('_hrank_session=keyring_fallback_cookie');
+      expect(session?.csrf_token).toBe('csrf_fallback_val');
+      expect(await authManager.isLoggedIn()).toBe(true);
     });
   });
 

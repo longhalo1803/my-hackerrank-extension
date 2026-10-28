@@ -10,12 +10,20 @@ export class AuthManager {
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   async getSession(): Promise<ISession | null> {
-    const cookie = await this.context.secrets.get(
-      AuthManager.SECRET_COOKIE_KEY,
-    );
-    const csrfToken = await this.context.secrets.get(
-      AuthManager.SECRET_CSRF_KEY,
-    );
+    let cookie: string | undefined;
+    let csrfToken: string | undefined;
+
+    try {
+      cookie = await this.context.secrets.get(AuthManager.SECRET_COOKIE_KEY);
+      csrfToken = await this.context.secrets.get(AuthManager.SECRET_CSRF_KEY);
+    } catch {
+      // SecretStorage/Keyring read failed, fallback to globalState
+    }
+
+    if (!cookie && this.context.globalState) {
+      cookie = this.context.globalState.get<string>(AuthManager.SECRET_COOKIE_KEY);
+      csrfToken = this.context.globalState.get<string>(AuthManager.SECRET_CSRF_KEY);
+    }
 
     if (!cookie) {
       return null;
@@ -28,17 +36,38 @@ export class AuthManager {
   }
 
   async saveSession(session: ISession): Promise<void> {
-    if (session.hackerrank_cookie) {
-      await this.context.secrets.store(
-        AuthManager.SECRET_COOKIE_KEY,
-        session.hackerrank_cookie,
-      );
+    let savedToSecrets = false;
+    try {
+      if (session.hackerrank_cookie) {
+        await this.context.secrets.store(
+          AuthManager.SECRET_COOKIE_KEY,
+          session.hackerrank_cookie,
+        );
+      }
+      if (session.csrf_token) {
+        await this.context.secrets.store(
+          AuthManager.SECRET_CSRF_KEY,
+          session.csrf_token,
+        );
+      }
+      savedToSecrets = true;
+    } catch {
+      // OS Keyring unavailable (Linux/WSL/SSH), fallback to persistent globalState
     }
-    if (session.csrf_token) {
-      await this.context.secrets.store(
-        AuthManager.SECRET_CSRF_KEY,
-        session.csrf_token,
-      );
+
+    if (!savedToSecrets && this.context.globalState) {
+      if (session.hackerrank_cookie) {
+        await this.context.globalState.update(
+          AuthManager.SECRET_COOKIE_KEY,
+          session.hackerrank_cookie,
+        );
+      }
+      if (session.csrf_token) {
+        await this.context.globalState.update(
+          AuthManager.SECRET_CSRF_KEY,
+          session.csrf_token,
+        );
+      }
     }
   }
 
@@ -52,8 +81,16 @@ export class AuthManager {
   }
 
   async logout(): Promise<void> {
-    await this.context.secrets.delete(AuthManager.SECRET_COOKIE_KEY);
-    await this.context.secrets.delete(AuthManager.SECRET_CSRF_KEY);
+    try {
+      await this.context.secrets.delete(AuthManager.SECRET_COOKIE_KEY);
+      await this.context.secrets.delete(AuthManager.SECRET_CSRF_KEY);
+    } catch {
+      // Ignore if secrets delete fails
+    }
+    if (this.context.globalState) {
+      await this.context.globalState.update(AuthManager.SECRET_COOKIE_KEY, undefined);
+      await this.context.globalState.update(AuthManager.SECRET_CSRF_KEY, undefined);
+    }
     vscode.window.showInformationMessage('Signed out from HackerRank.');
   }
 
