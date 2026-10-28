@@ -22,7 +22,7 @@ export class ProblemWebviewPanel {
     private readonly language: 'typescript' | 'javascript',
     private readonly testRunner: LocalTestRunner,
     private readonly apiClient: HackerRankAPIClient,
-    private readonly gitSyncService: GitSyncService
+    private readonly gitSyncService: GitSyncService,
   ) {
     this.panel = panel;
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
@@ -43,7 +43,7 @@ export class ProblemWebviewPanel {
         }
       },
       null,
-      this.disposables
+      this.disposables,
     );
   }
 
@@ -57,7 +57,7 @@ export class ProblemWebviewPanel {
     language: 'typescript' | 'javascript',
     testRunner: LocalTestRunner,
     apiClient: HackerRankAPIClient,
-    gitSyncService: GitSyncService
+    gitSyncService: GitSyncService,
   ): ProblemWebviewPanel {
     const existing = ProblemWebviewPanel.currentPanels.get(challenge.slug);
     if (existing) {
@@ -72,10 +72,12 @@ export class ProblemWebviewPanel {
       {
         enableScripts: true,
         localResourceRoots: [
-          vscode.Uri.file(path.join(extensionUri.fsPath, 'node_modules', 'katex', 'dist')),
-          vscode.Uri.file(path.join(extensionUri.fsPath, 'media'))
-        ]
-      }
+          vscode.Uri.file(
+            path.join(extensionUri.fsPath, 'node_modules', 'katex', 'dist'),
+          ),
+          vscode.Uri.file(path.join(extensionUri.fsPath, 'media')),
+        ],
+      },
     );
 
     const problemPanel = new ProblemWebviewPanel(
@@ -89,7 +91,7 @@ export class ProblemWebviewPanel {
       language,
       testRunner,
       apiClient,
-      gitSyncService
+      gitSyncService,
     );
 
     ProblemWebviewPanel.currentPanels.set(challenge.slug, problemPanel);
@@ -99,15 +101,18 @@ export class ProblemWebviewPanel {
   private async handleRunLocalTests(): Promise<void> {
     this.panel.webview.postMessage({ type: 'localTestRunning' });
     try {
-      const results = await this.testRunner.runAll(this.challengeDir, this.language);
+      const results = await this.testRunner.runAll(
+        this.challengeDir,
+        this.language,
+      );
       this.panel.webview.postMessage({
         type: 'localTestResults',
-        results
+        results,
       });
     } catch (err: any) {
       this.panel.webview.postMessage({
         type: 'localTestError',
-        error: err.message
+        error: err.message,
       });
     }
   }
@@ -124,15 +129,21 @@ export class ProblemWebviewPanel {
 
       const solution: ISolution = {
         code,
-        language: this.language
+        language: this.language,
       };
 
-      const submissionId = await this.apiClient.submitCode(this.challenge.slug, solution);
-      const verdict = await this.apiClient.pollSubmission(this.challenge.slug, submissionId);
+      const submissionId = await this.apiClient.submitCode(
+        this.challenge.slug,
+        solution,
+      );
+      const verdict = await this.apiClient.pollSubmission(
+        this.challenge.slug,
+        submissionId,
+      );
 
       this.panel.webview.postMessage({
         type: 'submissionResults',
-        verdict
+        verdict,
       });
 
       if (verdict.status === 'Accepted') {
@@ -141,7 +152,7 @@ export class ProblemWebviewPanel {
     } catch (err: any) {
       this.panel.webview.postMessage({
         type: 'submissionError',
-        error: err.message
+        error: err.message,
       });
     }
   }
@@ -151,13 +162,14 @@ export class ProblemWebviewPanel {
       this.trackSlug,
       this.chapterSlug,
       this.challenge.slug,
-      this.language
+      this.language,
     );
   }
 
   private getNonce(): string {
     let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const possible =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (let i = 0; i < 32; i++) {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
@@ -167,7 +179,15 @@ export class ProblemWebviewPanel {
   private getHtmlForWebview(): string {
     const nonce = this.getNonce();
     const katexCssUri = this.panel.webview.asWebviewUri(
-      vscode.Uri.file(path.join(this.extensionUri.fsPath, 'node_modules', 'katex', 'dist', 'katex.min.css'))
+      vscode.Uri.file(
+        path.join(
+          this.extensionUri.fsPath,
+          'node_modules',
+          'katex',
+          'dist',
+          'katex.min.css',
+        ),
+      ),
     );
 
     return `<!DOCTYPE html>

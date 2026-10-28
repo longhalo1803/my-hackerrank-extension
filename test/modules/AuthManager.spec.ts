@@ -12,7 +12,7 @@ describe('AuthManager', () => {
     secrets = new MockSecretStorage();
     mockContext = {
       secrets,
-      subscriptions: []
+      subscriptions: [],
     } as unknown as vscode.ExtensionContext;
     authManager = new AuthManager(mockContext);
   });
@@ -27,7 +27,7 @@ describe('AuthManager', () => {
     it('saves and retrieves session correctly', async () => {
       await authManager.saveSession({
         hackerrank_cookie: '_hrank_session=mock_cookie_123',
-        csrf_token: 'mock_csrf_abc'
+        csrf_token: 'mock_csrf_abc',
       });
 
       const session = await authManager.getSession();
@@ -40,20 +40,24 @@ describe('AuthManager', () => {
     it('clears session upon logout', async () => {
       await authManager.saveSession({
         hackerrank_cookie: '_hrank_session=mock_cookie_123',
-        csrf_token: 'mock_csrf_abc'
+        csrf_token: 'mock_csrf_abc',
       });
       expect(await authManager.isLoggedIn()).toBe(true);
 
       await authManager.logout();
       expect(await authManager.getSession()).toBeNull();
       expect(await authManager.isLoggedIn()).toBe(false);
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Signed out from HackerRank.');
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        'Signed out from HackerRank.',
+      );
     });
   });
 
   describe('Manual Cookie Authentication', () => {
     it('prompts user and saves session when valid cookie is entered', async () => {
-      (vscode.window.showInputBox as jest.Mock).mockResolvedValueOnce('_hrank_session=manual_cookie_value');
+      (vscode.window.showInputBox as jest.Mock).mockResolvedValueOnce(
+        '_hrank_session=manual_cookie_value',
+      );
       const success = await authManager.loginWithManualCookie();
 
       expect(success).toBe(true);
@@ -63,7 +67,9 @@ describe('AuthManager', () => {
     });
 
     it('returns false and does not save session if user cancels input', async () => {
-      (vscode.window.showInputBox as jest.Mock).mockResolvedValueOnce(undefined);
+      (vscode.window.showInputBox as jest.Mock).mockResolvedValueOnce(
+        undefined,
+      );
       const success = await authManager.loginWithManualCookie();
 
       expect(success).toBe(false);

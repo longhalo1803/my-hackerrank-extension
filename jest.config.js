@@ -6,6 +6,6 @@ module.exports = {
   coverageDirectory: './coverage',
   collectCoverageFrom: ['src/**/*.ts', '!src/types/**/*.ts'],
   moduleNameMapper: {
-    '^vscode$': '<rootDir>/test/mocks/vscode.ts'
-  }
+    '^vscode$': '<rootDir>/test/mocks/vscode.ts',
+  },
 };

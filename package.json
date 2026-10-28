@@ -4,6 +4,10 @@
   "description": "Solve and submit HackerRank coding challenges directly inside Antigravity IDE and VS Code forks.",
   "version": "0.1.0",
   "publisher": "longlt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/longlt/My-own-hackerrank.git"
+  },
   "engines": {
     "vscode": "^1.83.0"
   },
@@ -35,6 +39,10 @@
       {
         "command": "hackerrank.signin",
         "title": "HackerRank: Sign In"
+      },
+      {
+        "command": "hackerrank.checkStatus",
+        "title": "HackerRank: Check Login Status"
       },
       {
         "command": "hackerrank.logout",

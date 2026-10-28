@@ -1,10 +1,10 @@
-import * as vscode from "vscode";
-import { chromium, Browser } from "playwright-core";
-import { ISession } from "../types/hackerrank";
+import * as vscode from 'vscode';
+import { chromium, Browser } from 'playwright-core';
+import { ISession } from '../types/hackerrank';
 
 export class AuthManager {
-  private static readonly SECRET_COOKIE_KEY = "hackerrank_cookie";
-  private static readonly SECRET_CSRF_KEY = "hackerrank_csrf";
+  private static readonly SECRET_COOKIE_KEY = 'hackerrank_cookie';
+  private static readonly SECRET_CSRF_KEY = 'hackerrank_csrf';
   private activeBrowser: Browser | null = null;
 
   constructor(private readonly context: vscode.ExtensionContext) {}
@@ -54,11 +54,11 @@ export class AuthManager {
   async logout(): Promise<void> {
     await this.context.secrets.delete(AuthManager.SECRET_COOKIE_KEY);
     await this.context.secrets.delete(AuthManager.SECRET_CSRF_KEY);
-    vscode.window.showInformationMessage("Signed out from HackerRank.");
+    vscode.window.showInformationMessage('Signed out from HackerRank.');
   }
 
   hasDisplayEnvironment(platform: string = process.platform): boolean {
-    if (platform === "darwin" || platform === "win32") {
+    if (platform === 'darwin' || platform === 'win32') {
       return true;
     }
     return Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
@@ -66,8 +66,8 @@ export class AuthManager {
 
   async loginWithManualCookie(): Promise<boolean> {
     const cookieInput = await vscode.window.showInputBox({
-      prompt: "Enter your HackerRank _hrank_session cookie",
-      placeHolder: "_hrank_session=...",
+      prompt: 'Enter your HackerRank _hrank_session cookie',
+      placeHolder: '_hrank_session=...',
       password: true,
       ignoreFocusOut: true,
     });
@@ -77,7 +77,7 @@ export class AuthManager {
     }
 
     const trimmed = cookieInput.trim();
-    const formattedCookie = trimmed.startsWith("_hrank_session=")
+    const formattedCookie = trimmed.startsWith('_hrank_session=')
       ? trimmed
       : `_hrank_session=${trimmed}`;
 
@@ -86,7 +86,7 @@ export class AuthManager {
     });
 
     vscode.window.showInformationMessage(
-      "HackerRank session saved successfully.",
+      'HackerRank session saved successfully.',
     );
     return true;
   }
@@ -94,19 +94,19 @@ export class AuthManager {
   async loginWithGoogle(): Promise<boolean> {
     if (!this.hasDisplayEnvironment()) {
       vscode.window.showWarningMessage(
-        "No graphical display detected. Falling back to manual session cookie entry.",
+        'No graphical display detected. Falling back to manual session cookie entry.',
       );
       return this.loginWithManualCookie();
     }
 
     try {
       this.activeBrowser = await chromium.launch({
-        channel: "chrome",
+        channel: 'chrome',
         headless: false,
       });
     } catch {
       vscode.window.showWarningMessage(
-        "System Google Chrome not found or failed to launch. Falling back to manual cookie entry.",
+        'System Google Chrome not found or failed to launch. Falling back to manual cookie entry.',
       );
       return this.loginWithManualCookie();
     }
@@ -118,7 +118,7 @@ export class AuthManager {
     let capturedCsrf: string | null = null;
 
     try {
-      await page.goto("https://www.hackerrank.com/auth/login");
+      await page.goto('https://www.hackerrank.com/auth/login');
 
       // Poll cookies for _hrank_session
       const checkInterval = 1000;
@@ -127,7 +127,7 @@ export class AuthManager {
 
       while (elapsed < maxWaitMs) {
         const cookies = await browserContext.cookies();
-        const sessionCookie = cookies.find((c) => c.name === "_hrank_session");
+        const sessionCookie = cookies.find((c) => c.name === '_hrank_session');
 
         if (sessionCookie) {
           capturedCookie = `_hrank_session=${sessionCookie.value}`;
@@ -143,7 +143,7 @@ export class AuthManager {
         try {
           const csrfMeta = await page.$('meta[name="csrf-token"]');
           if (csrfMeta) {
-            capturedCsrf = await csrfMeta.getAttribute("content");
+            capturedCsrf = await csrfMeta.getAttribute('content');
           }
         } catch {
           // Non-critical if CSRF is captured later via HTTP client
@@ -155,11 +155,11 @@ export class AuthManager {
         });
 
         vscode.window.showInformationMessage(
-          "Successfully logged in to HackerRank!",
+          'Successfully logged in to HackerRank!',
         );
         return true;
       } else {
-        vscode.window.showErrorMessage("Login timed out or was cancelled.");
+        vscode.window.showErrorMessage('Login timed out or was cancelled.');
         return false;
       }
     } catch (err: any) {

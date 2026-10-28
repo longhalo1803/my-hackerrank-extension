@@ -46,7 +46,7 @@ export interface ISession {
 
 export interface ISolution {
   code: string;
-  language: "typescript" | "javascript";
+  language: 'typescript' | 'javascript';
 }
 
 export interface IRunResult {

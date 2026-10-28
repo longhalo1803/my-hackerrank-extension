@@ -16,23 +16,27 @@ export class WorkspaceScaffolder {
   constructor(private readonly workspaceRoot: string) {
     this.turndownService = new TurndownService({
       headingStyle: 'atx',
-      codeBlockStyle: 'fenced'
+      codeBlockStyle: 'fenced',
     });
   }
 
   async scaffold(
     challenge: IChallenge,
     trackSlug: string,
-    chapterSlug: string
+    chapterSlug: string,
   ): Promise<IScaffoldResult> {
     const isTS = challenge.languages.includes('typescript');
     const isJS = challenge.languages.includes('javascript');
 
     if (!isTS && !isJS) {
-      throw new Error(`Challenge ${challenge.slug} does not support TypeScript or JavaScript.`);
+      throw new Error(
+        `Challenge ${challenge.slug} does not support TypeScript or JavaScript.`,
+      );
     }
 
-    const language: 'typescript' | 'javascript' = isTS ? 'typescript' : 'javascript';
+    const language: 'typescript' | 'javascript' = isTS
+      ? 'typescript'
+      : 'javascript';
     const filename = isTS ? 'solution.ts' : 'solution.js';
 
     const targetDir = path.join(
@@ -40,7 +44,7 @@ export class WorkspaceScaffolder {
       'tracks',
       trackSlug,
       chapterSlug,
-      challenge.slug
+      challenge.slug,
     );
     fs.mkdirSync(targetDir, { recursive: true });
 
@@ -48,9 +52,11 @@ export class WorkspaceScaffolder {
 
     // Overwrite protection: preserve existing user edits
     if (!fs.existsSync(solutionPath)) {
-      const head = challenge.languagesBoilerplate[`${language}_template_head`] || '';
+      const head =
+        challenge.languagesBoilerplate[`${language}_template_head`] || '';
       const body = challenge.languagesBoilerplate[`${language}_template`] || '';
-      const tail = challenge.languagesBoilerplate[`${language}_template_tail`] || '';
+      const tail =
+        challenge.languagesBoilerplate[`${language}_template_tail`] || '';
 
       const boilerplate = `${head}${body}${tail}`;
       fs.writeFileSync(solutionPath, boilerplate, 'utf8');
@@ -58,7 +64,9 @@ export class WorkspaceScaffolder {
 
     // Convert question HTML to problem.md
     const problemPath = path.join(targetDir, 'problem.md');
-    const problemMarkdown = this.turndownService.turndown(challenge.questionHtml || '');
+    const problemMarkdown = this.turndownService.turndown(
+      challenge.questionHtml || '',
+    );
     fs.writeFileSync(problemPath, problemMarkdown, 'utf8');
 
     // Scaffold sample testcases
@@ -67,8 +75,16 @@ export class WorkspaceScaffolder {
 
     if (challenge.sampleTestCases && challenge.sampleTestCases.length > 0) {
       challenge.sampleTestCases.forEach((tc, idx) => {
-        fs.writeFileSync(path.join(testsDir, `input_${idx}.txt`), tc.input, 'utf8');
-        fs.writeFileSync(path.join(testsDir, `output_${idx}.txt`), tc.output, 'utf8');
+        fs.writeFileSync(
+          path.join(testsDir, `input_${idx}.txt`),
+          tc.input,
+          'utf8',
+        );
+        fs.writeFileSync(
+          path.join(testsDir, `output_${idx}.txt`),
+          tc.output,
+          'utf8',
+        );
       });
     } else {
       // Default placeholder if none provided
@@ -86,7 +102,7 @@ export class WorkspaceScaffolder {
       targetDir,
       solutionPath,
       problemPath,
-      language
+      language,
     };
   }
 }

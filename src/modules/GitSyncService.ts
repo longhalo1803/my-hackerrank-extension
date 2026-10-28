@@ -1,6 +1,6 @@
-import * as vscode from "vscode";
-import { execFileSync } from "child_process";
-import * as path from "path";
+import * as vscode from 'vscode';
+import { execFileSync } from 'child_process';
+import * as path from 'path';
 
 export class GitSyncService {
   constructor(private readonly workspaceRoot: string) {}
@@ -15,9 +15,9 @@ export class GitSyncService {
 
   private isInsideGitRepo(): boolean {
     try {
-      execFileSync("git", ["rev-parse", "--is-inside-work-tree"], {
+      execFileSync('git', ['rev-parse', '--is-inside-work-tree'], {
         cwd: this.workspaceRoot,
-        stdio: "ignore",
+        stdio: 'ignore',
       });
       return true;
     } catch {
@@ -27,20 +27,20 @@ export class GitSyncService {
 
   private hasRemoteOrigin(): boolean {
     try {
-      const output = execFileSync("git", ["remote"], {
+      const output = execFileSync('git', ['remote'], {
         cwd: this.workspaceRoot,
-        encoding: "utf8",
+        encoding: 'utf8',
       });
-      return output.includes("origin");
+      return output.includes('origin');
     } catch {
       return false;
     }
   }
 
   private runGitCommand(args: string[]): string {
-    return execFileSync("git", args, {
+    return execFileSync('git', args, {
       cwd: this.workspaceRoot,
-      encoding: "utf8",
+      encoding: 'utf8',
     });
   }
 
@@ -52,7 +52,7 @@ export class GitSyncService {
   ): Promise<boolean> {
     if (!this.workspaceRoot) {
       vscode.window.showErrorMessage(
-        "No active workspace folder opened for Git sync.",
+        'No active workspace folder opened for Git sync.',
       );
       return false;
     }
@@ -66,18 +66,18 @@ export class GitSyncService {
 
     try {
       const relPath =
-        path.join("tracks", trackSlug, chapterSlug, challengeSlug) + "/";
-      this.runGitCommand(["add", relPath]);
+        path.join('tracks', trackSlug, chapterSlug, challengeSlug) + '/';
+      this.runGitCommand(['add', relPath]);
 
       const commitMsg = this.buildCommitMessage(
         trackSlug,
         challengeSlug,
         language,
       );
-      this.runGitCommand(["commit", "-m", commitMsg]);
+      this.runGitCommand(['commit', '-m', commitMsg]);
 
       if (this.hasRemoteOrigin()) {
-        this.runGitCommand(["push", "origin", "HEAD"]);
+        this.runGitCommand(['push', 'origin', 'HEAD']);
         vscode.window.showInformationMessage(
           `Committed and pushed solution: "${commitMsg}"`,
         );

@@ -5,7 +5,7 @@ import {
   IChallenge,
   ISolution,
   ISubmissionResult,
-  ISampleTestCase
+  ISampleTestCase,
 } from '../types/hackerrank';
 
 const DEFAULT_NODE_BOILERPLATE = `function processData(input: string) {
@@ -31,7 +31,7 @@ export class HackerRankAPIClient {
   private async getHeaders(): Promise<Record<string, string>> {
     const session = await this.authManager.getSession();
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
 
     if (session?.hackerrank_cookie) {
@@ -50,7 +50,9 @@ export class HackerRankAPIClient {
     const response = await fetch(url, { method: 'GET', headers });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch tracks: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch tracks: ${response.status} ${response.statusText}`,
+      );
     }
 
     const data = (await response.json()) as any;
@@ -58,7 +60,7 @@ export class HackerRankAPIClient {
       id: t.id,
       name: t.name,
       slug: t.slug,
-      description: t.description || ''
+      description: t.description || '',
     }));
   }
 
@@ -78,14 +80,22 @@ export class HackerRankAPIClient {
     return ['all'];
   }
 
-  async getChallenges(trackSlug: string, chapterSlug?: string): Promise<ITrackChallenges[]> {
-    const query = chapterSlug && chapterSlug !== 'all' ? `?filters[sub_domains][]=${chapterSlug}&offset=0&limit=200` : '?offset=0&limit=200';
+  async getChallenges(
+    trackSlug: string,
+    chapterSlug?: string,
+  ): Promise<ITrackChallenges[]> {
+    const query =
+      chapterSlug && chapterSlug !== 'all'
+        ? `?filters[sub_domains][]=${chapterSlug}&offset=0&limit=200`
+        : '?offset=0&limit=200';
     const url = `${HackerRankAPIClient.BASE_URI}/contests/master/tracks/${trackSlug}/challenges${query}`;
     const headers = await this.getHeaders();
     const response = await fetch(url, { method: 'GET', headers });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch challenges: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch challenges: ${response.status} ${response.statusText}`,
+      );
     }
 
     const data = (await response.json()) as any;
@@ -97,7 +107,7 @@ export class HackerRankAPIClient {
       difficulty: c.difficulty_name || 'Medium',
       trackSlug,
       maxScore: c.max_score,
-      successRatio: c.success_ratio
+      successRatio: c.success_ratio,
     }));
   }
 
@@ -107,7 +117,9 @@ export class HackerRankAPIClient {
     const response = await fetch(url, { method: 'GET', headers });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch challenge ${challengeSlug}: ${response.status}`);
+      throw new Error(
+        `Failed to fetch challenge ${challengeSlug}: ${response.status}`,
+      );
     }
 
     const data = (await response.json()) as any;
@@ -155,7 +167,7 @@ export class HackerRankAPIClient {
         sampleTestCases.push({
           id: index,
           input: tc.input || '',
-          output: tc.output || ''
+          output: tc.output || '',
         });
       });
     }
@@ -171,28 +183,33 @@ export class HackerRankAPIClient {
       authorName: model.author_name,
       authorAvatar: model.author_avatar,
       languagesBoilerplate,
-      sampleTestCases
+      sampleTestCases,
     };
   }
 
-  async submitCode(challengeSlug: string, solution: ISolution): Promise<number> {
+  async submitCode(
+    challengeSlug: string,
+    solution: ISolution,
+  ): Promise<number> {
     const url = `${HackerRankAPIClient.BASE_URI}/contests/master/challenges/${challengeSlug}/submissions`;
     const headers = await this.getHeaders();
     const body = JSON.stringify({
       customtestcase: false,
       playlist_slug: '',
       code: solution.code,
-      language: solution.language
+      language: solution.language,
     });
 
     const response = await fetch(url, {
       method: 'POST',
       headers,
-      body
+      body,
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to submit code: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to submit code: ${response.status} ${response.statusText}`,
+      );
     }
 
     const data = (await response.json()) as any;
@@ -208,7 +225,7 @@ export class HackerRankAPIClient {
     submissionId: number,
     maxTries = 10,
     seedMs = 500,
-    stepMs = 200
+    stepMs = 200,
   ): Promise<ISubmissionResult> {
     let tries = 0;
 
@@ -225,19 +242,21 @@ export class HackerRankAPIClient {
         const model = data.model;
 
         if (model && model.status !== 'Processing') {
-          const testcaseResults = (model.testcase_message || []).map((msg: string, idx: number) => ({
-            id: idx,
-            message: msg,
-            status: model.testcase_status ? model.testcase_status[idx] : 0,
-            time: model.codechecker_time ? model.codechecker_time[idx] : 0
-          }));
+          const testcaseResults = (model.testcase_message || []).map(
+            (msg: string, idx: number) => ({
+              id: idx,
+              message: msg,
+              status: model.testcase_status ? model.testcase_status[idx] : 0,
+              time: model.codechecker_time ? model.codechecker_time[idx] : 0,
+            }),
+          );
 
           return {
             submissionId: model.id,
             challengeId: model.challenge_id,
             challengeSlug: model.challenge_slug || challengeSlug,
             status: model.status,
-            testcaseResults
+            testcaseResults,
           };
         }
       }

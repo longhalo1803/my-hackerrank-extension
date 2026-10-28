@@ -48,7 +48,10 @@ describe('LocalTestRunner', () => {
     `;
     fs.writeFileSync(path.join(tempDir, 'solution.js'), solutionCode);
     fs.writeFileSync(path.join(tempDir, 'tests', 'input_0.txt'), '');
-    fs.writeFileSync(path.join(tempDir, 'tests', 'output_0.txt'), 'HELLO_HACKERRANK');
+    fs.writeFileSync(
+      path.join(tempDir, 'tests', 'output_0.txt'),
+      'HELLO_HACKERRANK',
+    );
 
     const results = await runner.runAll(tempDir, 'javascript');
     expect(results.length).toBe(1);
@@ -60,7 +63,10 @@ describe('LocalTestRunner', () => {
     const solutionCode = `console.log('wrong output');`;
     fs.writeFileSync(path.join(tempDir, 'solution.js'), solutionCode);
     fs.writeFileSync(path.join(tempDir, 'tests', 'input_0.txt'), '');
-    fs.writeFileSync(path.join(tempDir, 'tests', 'output_0.txt'), 'correct output');
+    fs.writeFileSync(
+      path.join(tempDir, 'tests', 'output_0.txt'),
+      'correct output',
+    );
 
     const results = await runner.runAll(tempDir, 'javascript');
     expect(results.length).toBe(1);

@@ -24,20 +24,26 @@ describe('WorkspaceScaffolder', () => {
     languages: ['typescript', 'javascript'],
     difficulty: 'Easy',
     description: 'Sum an array of integers',
-    questionHtml: '<h1>Simple Array Sum</h1><p>Given an array of integers, find the sum.</p>',
+    questionHtml:
+      '<h1>Simple Array Sum</h1><p>Given an array of integers, find the sum.</p>',
     languagesBoilerplate: {
       typescript_template_head: 'import * as fs from "fs";\n',
-      typescript_template: 'function simpleArraySum(ar: number[]): number {\n  return 0;\n}\n',
-      typescript_template_tail: 'console.log(simpleArraySum([1, 2, 3]));\n'
+      typescript_template:
+        'function simpleArraySum(ar: number[]): number {\n  return 0;\n}\n',
+      typescript_template_tail: 'console.log(simpleArraySum([1, 2, 3]));\n',
     },
     sampleTestCases: [
       { id: 0, input: '6\n1 2 3 4 10 11', output: '31' },
-      { id: 1, input: '3\n5 10 15', output: '30' }
-    ]
+      { id: 1, input: '3\n5 10 15', output: '30' },
+    ],
   };
 
   it('scaffolds solution.ts with concatenated boilerplate and testcases', async () => {
-    const result = await scaffolder.scaffold(mockChallenge, 'algorithms', 'warmup');
+    const result = await scaffolder.scaffold(
+      mockChallenge,
+      'algorithms',
+      'warmup',
+    );
 
     expect(result.language).toBe('typescript');
     expect(result.solutionPath).toContain('solution.ts');
@@ -67,11 +73,19 @@ describe('WorkspaceScaffolder', () => {
 
   it('protects existing solution from being overwritten', async () => {
     // First scaffold
-    const firstResult = await scaffolder.scaffold(mockChallenge, 'algorithms', 'warmup');
+    const firstResult = await scaffolder.scaffold(
+      mockChallenge,
+      'algorithms',
+      'warmup',
+    );
     fs.writeFileSync(firstResult.solutionPath, '// USER WORK IN PROGRESS');
 
     // Second scaffold of same problem
-    const secondResult = await scaffolder.scaffold(mockChallenge, 'algorithms', 'warmup');
+    const secondResult = await scaffolder.scaffold(
+      mockChallenge,
+      'algorithms',
+      'warmup',
+    );
     const solutionContent = fs.readFileSync(secondResult.solutionPath, 'utf8');
 
     expect(solutionContent).toBe('// USER WORK IN PROGRESS');
@@ -83,11 +97,15 @@ describe('WorkspaceScaffolder', () => {
       slug: 'js-only-task',
       languages: ['javascript'],
       languagesBoilerplate: {
-        javascript_template: 'function solve() { return 42; }\n'
-      }
+        javascript_template: 'function solve() { return 42; }\n',
+      },
     };
 
-    const result = await scaffolder.scaffold(jsOnlyChallenge, 'algorithms', 'warmup');
+    const result = await scaffolder.scaffold(
+      jsOnlyChallenge,
+      'algorithms',
+      'warmup',
+    );
     expect(result.language).toBe('javascript');
     expect(result.solutionPath).toContain('solution.js');
     expect(fs.existsSync(result.solutionPath)).toBe(true);

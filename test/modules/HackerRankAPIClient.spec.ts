@@ -14,9 +14,9 @@ describe('HackerRankAPIClient', () => {
     mockAuthManager = {
       getSession: jest.fn().mockResolvedValue({
         hackerrank_cookie: '_hrank_session=mock_cookie_123',
-        csrf_token: 'mock_csrf_abc'
+        csrf_token: 'mock_csrf_abc',
       }),
-      isLoggedIn: jest.fn().mockResolvedValue(true)
+      isLoggedIn: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<AuthManager>;
 
     apiClient = new HackerRankAPIClient(mockAuthManager);
@@ -28,10 +28,20 @@ describe('HackerRankAPIClient', () => {
         ok: true,
         json: async () => ({
           models: [
-            { id: 1, name: 'Algorithms', slug: 'algorithms', description: 'Algorithmic problems' },
-            { id: 2, name: 'Data Structures', slug: 'data-structures', description: 'Core data structures' }
-          ]
-        })
+            {
+              id: 1,
+              name: 'Algorithms',
+              slug: 'algorithms',
+              description: 'Algorithmic problems',
+            },
+            {
+              id: 2,
+              name: 'Data Structures',
+              slug: 'data-structures',
+              description: 'Core data structures',
+            },
+          ],
+        }),
       });
 
       const tracks = await apiClient.getTracks();
@@ -42,9 +52,9 @@ describe('HackerRankAPIClient', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             Cookie: '_hrank_session=mock_cookie_123',
-            'X-Csrf-Token': 'mock_csrf_abc'
-          })
-        })
+            'X-Csrf-Token': 'mock_csrf_abc',
+          }),
+        }),
       );
     });
 
@@ -53,9 +63,15 @@ describe('HackerRankAPIClient', () => {
         ok: true,
         json: async () => ({
           models: [
-            { id: 101, slug: 'simple-array-sum', name: 'Simple Array Sum', preview: 'Sum array numbers', difficulty_name: 'Easy' }
-          ]
-        })
+            {
+              id: 101,
+              slug: 'simple-array-sum',
+              name: 'Simple Array Sum',
+              preview: 'Sum array numbers',
+              difficulty_name: 'Easy',
+            },
+          ],
+        }),
       });
 
       const challenges = await apiClient.getChallenges('algorithms', 'warmup');
@@ -74,9 +90,9 @@ describe('HackerRankAPIClient', () => {
             slug: 'c-only-challenge',
             name: 'C Only Challenge',
             languages: ['c', 'cpp', 'java'],
-            body_html: '<p>C only</p>'
-          }
-        })
+            body_html: '<p>C only</p>',
+          },
+        }),
       });
 
       const challenge = await apiClient.getChallenge('c-only-challenge');
@@ -98,18 +114,18 @@ describe('HackerRankAPIClient', () => {
             typescript_template_head: 'import * as fs from "fs";',
             typescript_template: 'function solve() {}',
             typescript_template_tail: 'solve();',
-            sample_test_cases: [
-              { input: '1 2 3', output: '6' }
-            ]
-          }
-        })
+            sample_test_cases: [{ input: '1 2 3', output: '6' }],
+          },
+        }),
       });
 
       const challenge = await apiClient.getChallenge('ts-challenge');
       expect(challenge).not.toBeNull();
       expect(challenge?.slug).toBe('ts-challenge');
       expect(challenge?.languages).toContain('typescript');
-      expect(challenge?.languagesBoilerplate['typescript_template']).toBe('function solve() {}');
+      expect(challenge?.languagesBoilerplate['typescript_template']).toBe(
+        'function solve() {}',
+      );
       expect(challenge?.sampleTestCases.length).toBe(1);
       expect(challenge?.sampleTestCases[0].input).toBe('1 2 3');
     });
@@ -125,14 +141,16 @@ describe('HackerRankAPIClient', () => {
             languages: ['javascript'],
             difficulty_name: 'Medium',
             body_html: '<p>Fallback</p>',
-            preview: 'Fallback preview'
-          }
-        })
+            preview: 'Fallback preview',
+          },
+        }),
       });
 
       const challenge = await apiClient.getChallenge('js-fallback-challenge');
       expect(challenge).not.toBeNull();
-      expect(challenge?.languagesBoilerplate['javascript_template']).toContain('processData');
+      expect(challenge?.languagesBoilerplate['javascript_template']).toContain(
+        'processData',
+      );
     });
   });
 
@@ -142,14 +160,14 @@ describe('HackerRankAPIClient', () => {
         ok: true,
         json: async () => ({
           model: {
-            id: 999123
-          }
-        })
+            id: 999123,
+          },
+        }),
       });
 
       const submissionId = await apiClient.submitCode('simple-array-sum', {
         code: 'console.log(6);',
-        language: 'typescript'
+        language: 'typescript',
       });
 
       expect(submissionId).toBe(999123);
@@ -161,9 +179,9 @@ describe('HackerRankAPIClient', () => {
             customtestcase: false,
             playlist_slug: '',
             code: 'console.log(6);',
-            language: 'typescript'
-          })
-        })
+            language: 'typescript',
+          }),
+        }),
       );
     });
 
@@ -176,9 +194,9 @@ describe('HackerRankAPIClient', () => {
             id: 999123,
             challenge_id: 101,
             challenge_slug: 'simple-array-sum',
-            status: 'Processing'
-          }
-        })
+            status: 'Processing',
+          },
+        }),
       });
 
       // Second poll: Accepted
@@ -192,12 +210,18 @@ describe('HackerRankAPIClient', () => {
             status: 'Accepted',
             testcase_message: ['Success', 'Success'],
             testcase_status: [1, 1],
-            codechecker_time: [0.05, 0.04]
-          }
-        })
+            codechecker_time: [0.05, 0.04],
+          },
+        }),
       });
 
-      const result = await apiClient.pollSubmission('simple-array-sum', 999123, 10, 50, 10);
+      const result = await apiClient.pollSubmission(
+        'simple-array-sum',
+        999123,
+        10,
+        50,
+        10,
+      );
       expect(result.status).toBe('Accepted');
       expect(result.testcaseResults.length).toBe(2);
       expect(result.testcaseResults[0].status).toBe(1);

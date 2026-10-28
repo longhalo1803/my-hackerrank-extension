@@ -1,7 +1,7 @@
-import * as vscode from "vscode";
-import { HackerRankAPIClient } from "./HackerRankAPIClient";
+import * as vscode from 'vscode';
+import { HackerRankAPIClient } from './HackerRankAPIClient';
 
-export type TreeItemType = "track" | "chapter" | "challenge";
+export type TreeItemType = 'track' | 'chapter' | 'challenge';
 
 export class ChallengeTreeItem extends vscode.TreeItem {
   constructor(
@@ -13,24 +13,24 @@ export class ChallengeTreeItem extends vscode.TreeItem {
     public readonly difficulty?: string,
   ) {
     const collapsible =
-      type === "challenge"
+      type === 'challenge'
         ? vscode.TreeItemCollapsibleState.None
         : vscode.TreeItemCollapsibleState.Collapsed;
 
     super(label, collapsible);
 
-    if (type === "challenge") {
-      this.contextValue = "challenge";
-      this.description = difficulty || "";
+    if (type === 'challenge') {
+      this.contextValue = 'challenge';
+      this.description = difficulty || '';
       this.command = {
-        command: "hackerrank.openChallenge",
-        title: "Open Challenge",
+        command: 'hackerrank.openChallenge',
+        title: 'Open Challenge',
         arguments: [trackSlug, chapterSlug, challengeSlug],
       };
-    } else if (type === "chapter") {
-      this.contextValue = "chapter";
+    } else if (type === 'chapter') {
+      this.contextValue = 'chapter';
     } else {
-      this.contextValue = "track";
+      this.contextValue = 'track';
     }
   }
 }
@@ -59,20 +59,20 @@ export class ChallengesTreeProvider implements vscode.TreeDataProvider<Challenge
         // Root: Tracks
         const tracks = await this.apiClient.getTracks();
         return tracks.map(
-          (t) => new ChallengeTreeItem(t.name, "track", t.slug),
+          (t) => new ChallengeTreeItem(t.name, 'track', t.slug),
         );
       }
 
-      if (element.type === "track" && element.trackSlug) {
+      if (element.type === 'track' && element.trackSlug) {
         // Chapters
         const chapters = await this.apiClient.getChapters(element.trackSlug);
         return chapters.map(
-          (c) => new ChallengeTreeItem(c, "chapter", element.trackSlug, c),
+          (c) => new ChallengeTreeItem(c, 'chapter', element.trackSlug, c),
         );
       }
 
       if (
-        element.type === "chapter" &&
+        element.type === 'chapter' &&
         element.trackSlug &&
         element.chapterSlug
       ) {
@@ -85,7 +85,7 @@ export class ChallengesTreeProvider implements vscode.TreeDataProvider<Challenge
           (ch) =>
             new ChallengeTreeItem(
               ch.name,
-              "challenge",
+              'challenge',
               element.trackSlug,
               element.chapterSlug,
               ch.slug,

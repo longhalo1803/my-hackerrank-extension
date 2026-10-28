@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
-import { ChallengesTreeProvider, ChallengeTreeItem } from '../../src/modules/ChallengesTreeProvider';
+import {
+  ChallengesTreeProvider,
+  ChallengeTreeItem,
+} from '../../src/modules/ChallengesTreeProvider';
 import { HackerRankAPIClient } from '../../src/modules/HackerRankAPIClient';
 
 describe('ChallengesTreeProvider', () => {
@@ -9,13 +12,21 @@ describe('ChallengesTreeProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockApiClient = {
-      getTracks: jest.fn().mockResolvedValue([
-        { id: 1, name: 'Algorithms', slug: 'algorithms', description: '' }
-      ]),
+      getTracks: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 1, name: 'Algorithms', slug: 'algorithms', description: '' },
+        ]),
       getChapters: jest.fn().mockResolvedValue(['warmup', 'strings']),
       getChallenges: jest.fn().mockResolvedValue([
-        { id: 101, slug: 'simple-array-sum', name: 'Simple Array Sum', difficulty: 'Easy', description: '' }
-      ])
+        {
+          id: 101,
+          slug: 'simple-array-sum',
+          name: 'Simple Array Sum',
+          difficulty: 'Easy',
+          description: '',
+        },
+      ]),
     } as unknown as jest.Mocked<HackerRankAPIClient>;
 
     treeProvider = new ChallengesTreeProvider(mockApiClient);
@@ -26,11 +37,17 @@ describe('ChallengesTreeProvider', () => {
     expect(rootItems.length).toBe(1);
     expect(rootItems[0].label).toBe('Algorithms');
     expect(rootItems[0].type).toBe('track');
-    expect(rootItems[0].collapsibleState).toBe(vscode.TreeItemCollapsibleState.Collapsed);
+    expect(rootItems[0].collapsibleState).toBe(
+      vscode.TreeItemCollapsibleState.Collapsed,
+    );
   });
 
   it('returns chapters under a track item', async () => {
-    const trackItem = new ChallengeTreeItem('Algorithms', 'track', 'algorithms');
+    const trackItem = new ChallengeTreeItem(
+      'Algorithms',
+      'track',
+      'algorithms',
+    );
     const chapterItems = await treeProvider.getChildren(trackItem);
 
     expect(chapterItems.length).toBe(2);
@@ -41,7 +58,12 @@ describe('ChallengesTreeProvider', () => {
   });
 
   it('returns challenges under a chapter item with command binding', async () => {
-    const chapterItem = new ChallengeTreeItem('warmup', 'chapter', 'algorithms', 'warmup');
+    const chapterItem = new ChallengeTreeItem(
+      'warmup',
+      'chapter',
+      'algorithms',
+      'warmup',
+    );
     const challengeItems = await treeProvider.getChildren(chapterItem);
 
     expect(challengeItems.length).toBe(1);

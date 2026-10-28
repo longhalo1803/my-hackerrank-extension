@@ -18,21 +18,25 @@ export class LocalTestRunner {
     challengeDir: string,
     language: 'typescript' | 'javascript',
     testcaseId: number,
-    timeoutMs = 5000
+    timeoutMs = 5000,
   ): Promise<IRunResult> {
     const testsDir = path.join(challengeDir, 'tests');
     const inputPath = path.join(testsDir, `input_${testcaseId}.txt`);
     const outputPath = path.join(testsDir, `output_${testcaseId}.txt`);
 
-    const inputData = fs.existsSync(inputPath) ? fs.readFileSync(inputPath, 'utf8') : '';
-    const expectedOutput = fs.existsSync(outputPath) ? this.normalizeOutput(fs.readFileSync(outputPath, 'utf8')) : '';
+    const inputData = fs.existsSync(inputPath)
+      ? fs.readFileSync(inputPath, 'utf8')
+      : '';
+    const expectedOutput = fs.existsSync(outputPath)
+      ? this.normalizeOutput(fs.readFileSync(outputPath, 'utf8'))
+      : '';
 
     const tempOutputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hr-out-'));
     const tempOutputFile = path.join(tempOutputDir, 'output.txt');
 
     const env = {
       ...process.env,
-      OUTPUT_PATH: tempOutputFile
+      OUTPUT_PATH: tempOutputFile,
     };
 
     const isTS = language === 'typescript';
@@ -49,7 +53,7 @@ export class LocalTestRunner {
       const child = spawn(command, args, {
         cwd: challengeDir,
         env,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       const timer = setTimeout(() => {
@@ -72,14 +76,16 @@ export class LocalTestRunner {
 
       child.on('error', (err) => {
         clearTimeout(timer);
-        try { fs.rmSync(tempOutputDir, { recursive: true, force: true }); } catch {}
+        try {
+          fs.rmSync(tempOutputDir, { recursive: true, force: true });
+        } catch {}
         resolve({
           passed: false,
           testcaseId,
           expected: expectedOutput,
           actual: '',
           durationMs: Date.now() - startTime,
-          stderr: `Process launch failed: ${err.message}`
+          stderr: `Process launch failed: ${err.message}`,
         });
       });
 
@@ -90,12 +96,17 @@ export class LocalTestRunner {
         let actual = '';
         if (fs.existsSync(tempOutputFile)) {
           const fileContent = fs.readFileSync(tempOutputFile, 'utf8');
-          actual = fileContent.length > 0 ? this.normalizeOutput(fileContent) : this.normalizeOutput(stdout);
+          actual =
+            fileContent.length > 0
+              ? this.normalizeOutput(fileContent)
+              : this.normalizeOutput(stdout);
         } else {
           actual = this.normalizeOutput(stdout);
         }
 
-        try { fs.rmSync(tempOutputDir, { recursive: true, force: true }); } catch {}
+        try {
+          fs.rmSync(tempOutputDir, { recursive: true, force: true });
+        } catch {}
 
         if (isTimedOut) {
           resolve({
@@ -104,7 +115,7 @@ export class LocalTestRunner {
             expected: expectedOutput,
             actual,
             durationMs,
-            stderr: `Execution timed out (${timeoutMs}ms limit)`
+            stderr: `Execution timed out (${timeoutMs}ms limit)`,
           });
           return;
         }
@@ -117,7 +128,7 @@ export class LocalTestRunner {
           expected: expectedOutput,
           actual,
           durationMs,
-          stderr: stderr.trim()
+          stderr: stderr.trim(),
         });
       });
     });
@@ -126,7 +137,7 @@ export class LocalTestRunner {
   async runAll(
     challengeDir: string,
     language: 'typescript' | 'javascript',
-    timeoutMs = 5000
+    timeoutMs = 5000,
   ): Promise<IRunResult[]> {
     const testsDir = path.join(challengeDir, 'tests');
     if (!fs.existsSync(testsDir)) {

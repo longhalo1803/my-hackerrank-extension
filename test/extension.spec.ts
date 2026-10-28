@@ -10,17 +10,33 @@ describe('Extension Lifecycle & Command Registration', () => {
       secrets: {
         get: jest.fn(),
         store: jest.fn(),
-        delete: jest.fn()
-      }
+        delete: jest.fn(),
+      },
     } as unknown as vscode.ExtensionContext;
 
     activate(context);
 
-    expect(vscode.commands.registerCommand).toHaveBeenCalledWith('hackerrank.signin', expect.any(Function));
-    expect(vscode.commands.registerCommand).toHaveBeenCalledWith('hackerrank.logout', expect.any(Function));
-    expect(vscode.commands.registerCommand).toHaveBeenCalledWith('hackerrank.refreshChallenges', expect.any(Function));
-    expect(vscode.commands.registerCommand).toHaveBeenCalledWith('hackerrank.openChallenge', expect.any(Function));
-    expect(subscriptions.length).toBe(5);
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      'hackerrank.signin',
+      expect.any(Function),
+    );
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      'hackerrank.checkStatus',
+      expect.any(Function),
+    );
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      'hackerrank.logout',
+      expect.any(Function),
+    );
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      'hackerrank.refreshChallenges',
+      expect.any(Function),
+    );
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      'hackerrank.openChallenge',
+      expect.any(Function),
+    );
+    expect(subscriptions.length).toBe(7);
   });
 
   it('deactivates cleanly', () => {
