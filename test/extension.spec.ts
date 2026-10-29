@@ -7,6 +7,11 @@ describe('Extension Lifecycle & Command Registration', () => {
     const context = {
       subscriptions,
       extensionUri: { fsPath: '/test/extension' },
+      globalStorageUri: { fsPath: '/test/storage' },
+      globalState: {
+        get: jest.fn(),
+        update: jest.fn(),
+      },
       secrets: {
         get: jest.fn(),
         store: jest.fn(),
@@ -40,7 +45,7 @@ describe('Extension Lifecycle & Command Registration', () => {
       'hackerrank.openChallenge',
       expect.any(Function),
     );
-    expect(subscriptions.length).toBe(8);
+    expect(subscriptions.length).toBe(9);
   });
 
   it('deactivates cleanly', () => {

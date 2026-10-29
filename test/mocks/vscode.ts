@@ -4,13 +4,14 @@ export const window = {
   showWarningMessage: jest.fn(),
   showInputBox: jest.fn(),
   showQuickPick: jest.fn(),
+  showSaveDialog: jest.fn(),
   createTreeView: jest.fn(),
   registerTreeDataProvider: jest.fn(),
   createWebviewPanel: jest.fn(),
   createOutputChannel: jest.fn(() => ({
     appendLine: jest.fn(),
     show: jest.fn(),
-    dispose: jest.fn()
+    dispose: jest.fn(),
   })),
   activeTextEditor: undefined,
   showTextDocument: jest.fn(),
@@ -34,10 +35,23 @@ export const workspace = {
 export class TreeItem {
   label: string;
   collapsibleState?: number;
+  iconPath?: any;
+  tooltip?: string;
   constructor(label: string, collapsibleState?: number) {
     this.label = label;
     this.collapsibleState = collapsibleState;
   }
+}
+
+export class ThemeIcon {
+  constructor(
+    public readonly id: string,
+    public readonly color?: any,
+  ) {}
+}
+
+export class ThemeColor {
+  constructor(public readonly id: string) {}
 }
 
 export enum TreeItemCollapsibleState {
@@ -71,8 +85,8 @@ export const commands = {
 
 export class MockSecretStorage {
   private data = new Map<string, string>();
-  get = jest.fn(
-    async (key: string): Promise<string | undefined> => this.data.get(key),
+  get = jest.fn(async (key: string): Promise<string | undefined> =>
+    this.data.get(key),
   );
   store = jest.fn(async (key: string, value: string): Promise<void> => {
     this.data.set(key, value);

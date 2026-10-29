@@ -2,37 +2,42 @@ import * as vscode from 'vscode';
 import { AuthManager } from './modules/AuthManager';
 import { HackerRankAPIClient } from './modules/HackerRankAPIClient';
 import { ChallengesTreeProvider } from './modules/ChallengesTreeProvider';
-import { WorkspaceScaffolder } from './modules/WorkspaceScaffolder';
-import { LocalTestRunner } from './modules/LocalTestRunner';
-import { GitSyncService } from './modules/GitSyncService';
+import { SolutionManager } from './modules/SolutionManager';
 import { ProblemWebviewPanel } from './views/ProblemWebviewPanel';
 
 export function activate(context: vscode.ExtensionContext) {
   const outputChannel = vscode.window.createOutputChannel('HackerRank');
-  outputChannel.appendLine('[Extension] HackerRank Native extension activated.');
+  outputChannel.appendLine(
+    '[Extension] HackerRank Native extension activated.',
+  );
 
   const authManager = new AuthManager(context);
   const apiClient = new HackerRankAPIClient(authManager);
   const treeProvider = new ChallengesTreeProvider(apiClient);
-  const localTestRunner = new LocalTestRunner();
 
-  const workspaceRoot =
-    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-  const scaffolder = new WorkspaceScaffolder(workspaceRoot);
-  const gitSyncService = new GitSyncService(workspaceRoot);
+  // Cross-platform sandbox storage (never touches workspace folder)
+  const storageRoot = context.globalStorageUri.fsPath;
+  const solutionManager = new SolutionManager(storageRoot);
 
   vscode.window.registerTreeDataProvider('challengesExplorer', treeProvider);
 
   const signinCmd = vscode.commands.registerCommand(
     'hackerrank.signin',
     async () => {
-      outputChannel.appendLine('[Auth] Initiating sign-in process...');
-      const success = await authManager.loginWithGoogle();
-      if (success) {
-        outputChannel.appendLine('[Auth] Sign-in successful. Refreshing challenges tree.');
-        treeProvider.refresh();
-      } else {
-        outputChannel.appendLine('[Auth] Sign-in was not completed.');
+      try {
+        outputChannel.appendLine('[Auth] Initiating sign-in process...');
+        const success = await authManager.loginWithGoogle();
+        if (success) {
+          outputChannel.appendLine(
+            '[Auth] Sign-in successful. Refreshing challenges tree.',
+          );
+          treeProvider.refresh();
+        } else {
+          outputChannel.appendLine('[Auth] Sign-in was not completed.');
+        }
+      } catch (err: any) {
+        outputChannel.appendLine(`[Auth] Sign-in error: ${err.message}`);
+        vscode.window.showErrorMessage(`Sign-in error: ${err.message}`);
       }
     },
   );
@@ -40,13 +45,26 @@ export function activate(context: vscode.ExtensionContext) {
   const signinManualCmd = vscode.commands.registerCommand(
     'hackerrank.signinManual',
     async () => {
-      outputChannel.appendLine('[Auth] Initiating manual cookie sign-in...');
-      const success = await authManager.loginWithManualCookie();
-      if (success) {
-        outputChannel.appendLine('[Auth] Manual cookie sign-in successful. Refreshing challenges tree.');
-        treeProvider.refresh();
-      } else {
-        outputChannel.appendLine('[Auth] Manual cookie sign-in was cancelled or invalid.');
+      try {
+        outputChannel.appendLine('[Auth] Initiating manual cookie sign-in...');
+        const success = await authManager.loginWithManualCookie();
+        if (success) {
+          outputChannel.appendLine(
+            '[Auth] Manual cookie sign-in successful. Refreshing challenges tree.',
+          );
+          treeProvider.refresh();
+        } else {
+          outputChannel.appendLine(
+            '[Auth] Manual cookie sign-in was cancelled or invalid.',
+          );
+        }
+      } catch (err: any) {
+        outputChannel.appendLine(
+          `[Auth] Manual cookie sign-in error: ${err.message}`,
+        );
+        vscode.window.showErrorMessage(
+          `Manual cookie sign-in error: ${err.message}`,
+        );
       }
     },
   );
@@ -54,18 +72,42 @@ export function activate(context: vscode.ExtensionContext) {
   const checkStatusCmd = vscode.commands.registerCommand(
     'hackerrank.checkStatus',
     async () => {
-      const loggedIn = await authManager.isLoggedIn();
-      const session = await authManager.getSession();
-      outputChannel.show(true);
-      if (loggedIn) {
-        const masked = session?.hackerrank_cookie
-          ? session.hackerrank_cookie.substring(0, 25) + '...'
-          : 'Active';
-        outputChannel.appendLine(`[Status] Logged in. Session Cookie: ${masked}`);
-        vscode.window.showInformationMessage(`HackerRank: Logged in (Session active)`);
-      } else {
-        outputChannel.appendLine('[Status] Not logged in.');
-        vscode.window.showWarningMessage('HackerRank: Not logged in. Run "HackerRank: Sign In" to connect.');
+      try {
+        outputChannel.show(true);
+        outputChannel.appendLine(
+          '[Status] Checking HackerRank session status...',
+        );
+        const user = await authManager.getCurrentUser();
+        if (user) {
+          outputChannel.appendLine(
+            `[Status] Active session verified: Logged in as ${user.username} (ID: ${user.id}).`,
+          );
+          vscode.window.showInformationMessage(
+            `HackerRank: Logged in as ${user.username}`,
+          );
+        } else {
+          const hasLocalSession = await authManager.isLoggedIn();
+          if (hasLocalSession) {
+            outputChannel.appendLine(
+              '[Status] Local session cookie exists but HackerRank reported unauthenticated (expired or invalid).',
+            );
+            vscode.window.showWarningMessage(
+              'HackerRank: Session cookie is expired or invalid. Please sign in again.',
+            );
+          } else {
+            outputChannel.appendLine('[Status] Not logged in.');
+            vscode.window.showWarningMessage(
+              'HackerRank: Not logged in. Run "HackerRank: Sign In" to connect.',
+            );
+          }
+        }
+      } catch (err: any) {
+        outputChannel.appendLine(
+          `[Status] Error checking status: ${err.message}`,
+        );
+        vscode.window.showErrorMessage(
+          `Error checking login status: ${err.message}`,
+        );
       }
     },
   );
@@ -73,16 +115,25 @@ export function activate(context: vscode.ExtensionContext) {
   const logoutCmd = vscode.commands.registerCommand(
     'hackerrank.logout',
     async () => {
-      outputChannel.appendLine('[Auth] Logging out...');
-      await authManager.logout();
-      treeProvider.refresh();
+      try {
+        outputChannel.appendLine('[Auth] Logging out...');
+        await authManager.logout();
+        treeProvider.refresh();
+      } catch (err: any) {
+        outputChannel.appendLine(`[Auth] Logout error: ${err.message}`);
+        vscode.window.showErrorMessage(`Logout error: ${err.message}`);
+      }
     },
   );
 
   const refreshCmd = vscode.commands.registerCommand(
     'hackerrank.refreshChallenges',
     () => {
-      treeProvider.refresh();
+      try {
+        treeProvider.refresh();
+      } catch (err: any) {
+        outputChannel.appendLine(`[Tree] Refresh error: ${err.message}`);
+      }
     },
   );
 
@@ -90,49 +141,52 @@ export function activate(context: vscode.ExtensionContext) {
     'hackerrank.openChallenge',
     async (trackSlug: string, chapterSlug: string, challengeSlug: string) => {
       try {
-        if (!workspaceRoot) {
-          vscode.window.showErrorMessage(
-            'Please open a workspace folder before opening HackerRank challenges.',
-          );
-          return;
-        }
-
         const challenge = await apiClient.getChallenge(challengeSlug);
         if (!challenge) {
           vscode.window.showWarningMessage(
-            `Challenge "${challengeSlug}" does not support TypeScript or JavaScript.`,
+            `Could not load details for challenge "${challengeSlug}".`,
           );
           return;
         }
 
-        const scaffoldResult = await scaffolder.scaffold(
+        // Determine default language: use lastUsedLanguage if supported, otherwise challenge's primary language
+        const lastLanguage = context.globalState.get<string>(
+          'hackerrank.lastUsedLanguage',
+        );
+        const defaultLang =
+          lastLanguage && challenge.languages.includes(lastLanguage)
+            ? lastLanguage
+            : challenge.languages[0] || 'typescript';
+
+        // Prepare solution file in global extension storage
+        const solutionPath = solutionManager.prepareSolutionFile(
           challenge,
           trackSlug,
-          chapterSlug,
+          defaultLang,
         );
 
-        // Open solution file in editor
-        const doc = await vscode.workspace.openTextDocument(
-          scaffoldResult.solutionPath,
-        );
+        // Open solution file in primary editor
+        const doc = await vscode.workspace.openTextDocument(solutionPath);
         await vscode.window.showTextDocument(doc, {
-          viewColumn: vscode.ViewColumn.Beside,
+          viewColumn: vscode.ViewColumn.One,
         });
 
-        // Open Webview panel with problem description and action buttons
+        // Open Webview panel with problem description and action controls side-by-side
         ProblemWebviewPanel.render(
           context.extensionUri,
           challenge,
           trackSlug,
           chapterSlug,
-          scaffoldResult.targetDir,
-          scaffoldResult.solutionPath,
-          scaffoldResult.language,
-          localTestRunner,
+          solutionPath,
+          defaultLang,
           apiClient,
-          gitSyncService,
+          solutionManager,
+          context.globalState,
         );
       } catch (err: any) {
+        outputChannel.appendLine(
+          `[Error] Failed to open challenge "${challengeSlug}": ${err.message}`,
+        );
         vscode.window.showErrorMessage(
           `Failed to open challenge: ${err.message}`,
         );
@@ -148,6 +202,7 @@ export function activate(context: vscode.ExtensionContext) {
     refreshCmd,
     openChallengeCmd,
     outputChannel,
+    treeProvider,
     { dispose: () => authManager.dispose() },
   );
 }

@@ -11,6 +11,7 @@ export class ChallengeTreeItem extends vscode.TreeItem {
     public readonly chapterSlug?: string,
     public readonly challengeSlug?: string,
     public readonly difficulty?: string,
+    public readonly solved?: boolean,
   ) {
     const collapsible =
       type === 'challenge'
@@ -22,6 +23,16 @@ export class ChallengeTreeItem extends vscode.TreeItem {
     if (type === 'challenge') {
       this.contextValue = 'challenge';
       this.description = difficulty || '';
+      if (solved) {
+        this.iconPath = new vscode.ThemeIcon(
+          'pass-filled',
+          new vscode.ThemeColor('testing.iconPassed'),
+        );
+        this.tooltip = `${label} (${difficulty || 'Medium'}) - Solved ✓`;
+      } else {
+        this.iconPath = new vscode.ThemeIcon('circle-outline');
+        this.tooltip = `${label} (${difficulty || 'Medium'}) - Unsolved`;
+      }
       this.command = {
         command: 'hackerrank.openChallenge',
         title: 'Open Challenge',
@@ -29,13 +40,17 @@ export class ChallengeTreeItem extends vscode.TreeItem {
       };
     } else if (type === 'chapter') {
       this.contextValue = 'chapter';
+      this.iconPath = new vscode.ThemeIcon('folder');
     } else {
       this.contextValue = 'track';
+      this.iconPath = new vscode.ThemeIcon('repo');
     }
   }
 }
 
-export class ChallengesTreeProvider implements vscode.TreeDataProvider<ChallengeTreeItem> {
+export class ChallengesTreeProvider
+  implements vscode.TreeDataProvider<ChallengeTreeItem>, vscode.Disposable
+{
   private _onDidChangeTreeData: vscode.EventEmitter<
     ChallengeTreeItem | undefined | null | void
   > = new vscode.EventEmitter<ChallengeTreeItem | undefined | null | void>();
@@ -47,6 +62,10 @@ export class ChallengesTreeProvider implements vscode.TreeDataProvider<Challenge
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
+  }
+
+  dispose(): void {
+    this._onDidChangeTreeData.dispose();
   }
 
   getTreeItem(element: ChallengeTreeItem): vscode.TreeItem {
@@ -90,6 +109,7 @@ export class ChallengesTreeProvider implements vscode.TreeDataProvider<Challenge
               element.chapterSlug,
               ch.slug,
               ch.difficulty,
+              ch.solved,
             ),
         );
       }

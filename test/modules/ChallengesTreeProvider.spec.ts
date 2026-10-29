@@ -72,4 +72,30 @@ describe('ChallengesTreeProvider', () => {
     expect(challengeItems[0].command).toBeDefined();
     expect(challengeItems[0].command?.command).toBe('hackerrank.openChallenge');
   });
+
+  it('renders checkmark icon and tooltip for solved challenges and circle for unsolved', () => {
+    const solvedItem = new ChallengeTreeItem(
+      'Solved Problem',
+      'challenge',
+      'algorithms',
+      'warmup',
+      'solved-prob',
+      'Easy',
+      true,
+    );
+    expect((solvedItem.iconPath as any)?.id).toBe('pass-filled');
+    expect(solvedItem.tooltip).toContain('Solved ✓');
+
+    const unsolvedItem = new ChallengeTreeItem(
+      'Unsolved Problem',
+      'challenge',
+      'algorithms',
+      'warmup',
+      'unsolved-prob',
+      'Hard',
+      false,
+    );
+    expect((unsolvedItem.iconPath as any)?.id).toBe('circle-outline');
+    expect(unsolvedItem.tooltip).toContain('Unsolved');
+  });
 });
