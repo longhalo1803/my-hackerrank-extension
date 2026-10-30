@@ -3,10 +3,10 @@
   "displayName": "HackerRank Native",
   "description": "Solve and submit HackerRank coding challenges directly inside Antigravity IDE and VS Code forks.",
   "version": "0.1.0",
-  "publisher": "longlt",
+  "publisher": "longhalo1803",
   "repository": {
     "type": "git",
-    "url": "https://github.com/longlt/My-own-hackerrank.git"
+    "url": "https://github.com/longhalo1803/my-hackerrank-extension"
   },
   "engines": {
     "vscode": "^1.83.0"
@@ -35,9 +35,9 @@
     }
   ],
   "bugs": {
-    "url": "https://github.com/longlt/My-own-hackerrank/issues"
+    "url": "https://github.com/longhalo1803/My-own-hackerrank/issues"
   },
-  "homepage": "https://github.com/longlt/My-own-hackerrank#readme",
+  "homepage": "https://github.com/longhalo1803/My-own-hackerrank#readme",
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
@@ -61,11 +61,7 @@
     "commands": [
       {
         "command": "hackerrank.signin",
-        "title": "HackerRank: Sign In (Google OAuth)"
-      },
-      {
-        "command": "hackerrank.signinManual",
-        "title": "HackerRank: Sign In with Cookie (Direct)"
+        "title": "HackerRank: Sign In (via HackerRank Cookie)"
       },
       {
         "command": "hackerrank.checkStatus",

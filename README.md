@@ -18,9 +18,8 @@
   - **Run Code**: Triggers remote sample tests via HackerRank compile APIs.
   - **Submit Solution**: Submits your solution to the official HackerRank evaluation judge and displays testcase verdicts in real-time.
 - **Export Solution**: Save your finished code to any local folder or project workspace whenever you choose.
-- **Flexible & Secure Authentication**:
-  - **Google OAuth / Browser Sync**: 1-click loopback synchronization with your default browser.
-  - **Manual Session Cookie**: Direct cookie sign-in fallback with automated CSRF extraction.
+- **Secure Session Authentication**:
+  - **Session Cookie Sign In**: Direct cookie sign-in compatible with all login types (Google, GitHub, LinkedIn, Email/Password) with automatic CSRF token extraction.
   - **Secure Storage**: Credentials stored via VS Code's OS Keyring (`SecretStorage`).
 
 ---
@@ -41,12 +40,10 @@ code --install-extension hackerrank-native-0.1.0.vsix
 
 ### 2. Sign In
 
-1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
-2. Run **`HackerRank: Sign In (Google OAuth)`**:
-   - Your browser will open the HackerRank login page.
-   - The sync script is automatically copied to your clipboard.
-   - After signing in on the browser, paste into the address bar or DevTools Console to complete the 1-click handshake.
-3. _Alternative_: Run **`HackerRank: Sign In with Cookie (Direct)`** and paste your `_hrank_session` cookie.
+1. Open HackerRank in your browser and sign in (Google, GitHub, LinkedIn, or Email/Password).
+2. Open DevTools (`F12`), go to **Application** (or **Storage**) > **Cookies** > `https://www.hackerrank.com`, and copy the value of `_hrank_session`.
+3. In VS Code, open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
+4. Run **`HackerRank: Sign In with Cookie`** and paste your `_hrank_session` cookie. CSRF token will be automatically extracted.
 
 ### 3. Solving Challenges
 
@@ -61,13 +58,12 @@ code --install-extension hackerrank-native-0.1.0.vsix
 
 ## 🛠 Available Commands
 
-| Command                        | Title                                      | Description                                                     |
-| :----------------------------- | :----------------------------------------- | :-------------------------------------------------------------- |
-| `hackerrank.signin`            | `HackerRank: Sign In (Google OAuth)`       | Connect your HackerRank account via browser loopback handshake. |
-| `hackerrank.signinManual`      | `HackerRank: Sign In with Cookie (Direct)` | Sign in by pasting your session cookie and CSRF token.          |
-| `hackerrank.checkStatus`       | `HackerRank: Check Login Status`           | Verify current active session and username.                     |
-| `hackerrank.logout`            | `HackerRank: Sign Out`                     | Clear saved credentials from secure storage.                    |
-| `hackerrank.refreshChallenges` | `HackerRank: Refresh Challenges`           | Reload tracks, chapters, and challenge status.                  |
+| Command                        | Title                                         | Description                                    |
+| :----------------------------- | :-------------------------------------------- | :--------------------------------------------- |
+| `hackerrank.signin`            | `HackerRank: Sign In (via HackerRank Cookie)` | Sign in by pasting your session cookie.       |
+| `hackerrank.checkStatus`       | `HackerRank: Check Login Status`              | Verify current active session and username.    |
+| `hackerrank.logout`            | `HackerRank: Sign Out`                        | Clear saved credentials from secure storage.   |
+| `hackerrank.refreshChallenges` | `HackerRank: Refresh Challenges`              | Reload tracks, chapters, and challenge status. |
 
 ---
 

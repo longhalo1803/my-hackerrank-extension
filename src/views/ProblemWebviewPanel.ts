@@ -145,8 +145,11 @@ export class ProblemWebviewPanel {
     if (this.globalState) {
       try {
         await this.globalState.update('hackerrank.lastUsedLanguage', newLangId);
-      } catch {
-        // Non-critical persistence failure
+      } catch (err: any) {
+        console.warn(
+          '[ProblemWebviewPanel] Non-critical persistence failure for lastUsedLanguage:',
+          err?.message,
+        );
       }
     }
 
@@ -176,8 +179,11 @@ export class ProblemWebviewPanel {
       if (openDoc.isDirty) {
         try {
           await openDoc.save();
-        } catch {
-          // ignore auto-save errors
+        } catch (err: any) {
+          console.warn(
+            '[ProblemWebviewPanel] Auto-save before run/submit failed:',
+            err?.message,
+          );
         }
       }
       return openDoc.getText();
@@ -199,12 +205,9 @@ export class ProblemWebviewPanel {
         .showErrorMessage(
           `HackerRank Authentication Required: ${err.message}`,
           'Sign In with Cookie',
-          'Sign In with Google',
         )
         .then((action) => {
           if (action === 'Sign In with Cookie') {
-            vscode.commands.executeCommand('hackerrank.signinManual');
-          } else if (action === 'Sign In with Google') {
             vscode.commands.executeCommand('hackerrank.signin');
           }
         });

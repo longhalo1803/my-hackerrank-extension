@@ -35,12 +35,14 @@ describe('AuthManager', () => {
       await authManager.saveSession({
         hackerrank_cookie: '_hrank_session=mock_cookie_123',
         csrf_token: 'mock_csrf_abc',
+        auth_method: 'cookie',
       });
 
       const session = await authManager.getSession();
       expect(session).not.toBeNull();
       expect(session?.hackerrank_cookie).toBe('_hrank_session=mock_cookie_123');
       expect(session?.csrf_token).toBe('mock_csrf_abc');
+      expect(session?.auth_method).toBe('cookie');
       expect(await authManager.isLoggedIn()).toBe(true);
     });
 
@@ -108,7 +110,7 @@ describe('AuthManager', () => {
         }),
       });
 
-      const success = await authManager.loginWithManualCookie();
+      const success = await authManager.loginWithCookie();
 
       expect(success).toBe(true);
       const session = await authManager.getSession();
@@ -121,7 +123,7 @@ describe('AuthManager', () => {
       (vscode.window.showInputBox as jest.Mock).mockResolvedValueOnce(
         undefined,
       );
-      const success = await authManager.loginWithManualCookie();
+      const success = await authManager.loginWithCookie();
 
       expect(success).toBe(false);
       expect(await authManager.getSession()).toBeNull();
@@ -132,48 +134,15 @@ describe('AuthManager', () => {
       (vscode.window.showInputBox as jest.Mock).mockRejectedValueOnce(
         new Error('UI modal crash'),
       );
-      const success = await authManager.loginWithManualCookie();
+      const success = await authManager.loginWithCookie();
       expect(success).toBe(false);
       expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to save manual session'),
+        expect.stringContaining('Failed to save session cookie'),
       );
     });
-  });
 
-  describe('Safe Teardown', () => {
-    it('disposes active server without throwing if close fails', async () => {
-      (authManager as any).activeServer = {
-        close: jest.fn().mockImplementation(() => {
-          throw new Error('Server close error');
-        }),
-      };
-      await expect(authManager.dispose()).resolves.not.toThrow();
-      expect((authManager as any).activeServer).toBeNull();
-    });
-  });
-
-  describe('Display Environment Detection', () => {
-    it('detects when graphical display is missing on Linux', () => {
-      const originalDisplay = process.env.DISPLAY;
-      const originalWayland = process.env.WAYLAND_DISPLAY;
-      delete process.env.DISPLAY;
-      delete process.env.WAYLAND_DISPLAY;
-
-      expect(authManager.hasDisplayEnvironment('linux')).toBe(false);
-
-      process.env.DISPLAY = ':0';
-      expect(authManager.hasDisplayEnvironment('linux')).toBe(true);
-
-      // Restore
-      if (originalDisplay) process.env.DISPLAY = originalDisplay;
-      else delete process.env.DISPLAY;
-      if (originalWayland) process.env.WAYLAND_DISPLAY = originalWayland;
-      else delete process.env.WAYLAND_DISPLAY;
-    });
-
-    it('considers darwin and win32 as always having display', () => {
-      expect(authManager.hasDisplayEnvironment('darwin')).toBe(true);
-      expect(authManager.hasDisplayEnvironment('win32')).toBe(true);
+    it('disposes cleanly without throwing', () => {
+      expect(() => authManager.dispose()).not.toThrow();
     });
   });
 

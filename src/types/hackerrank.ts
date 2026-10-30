@@ -119,6 +119,8 @@ export interface ISession {
   email?: string;
   csrf_token?: string;
   hackerrank_cookie?: string;
+  auth_method?: 'cookie';
+  auth_time?: number;
 }
 
 export interface ISolution {
