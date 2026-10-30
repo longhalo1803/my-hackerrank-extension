@@ -50,37 +50,62 @@ export class HackerRankAPIClient {
           headers['X-CSRF-Token'] = csrfToken;
         }
       }
-    } catch {
-      // Safe fallback: proceed with basic json headers
+    } catch (err: any) {
+      console.warn(
+        '[HackerRankAPIClient] Failed assembling request headers:',
+        err?.message,
+      );
     }
 
     return headers;
   }
 
-  async getTracks(): Promise<ITrack[]> {
-    const url = `${HackerRankAPIClient.BASE_URI}/contests/master/tracks`;
-    const headers = await this.getHeaders();
+  private async request<T>(
+    url: string,
+    options: RequestInit = {},
+    requireCsrf: boolean = false,
+    resourceName: string = 'API',
+  ): Promise<T> {
+    const headers = await this.getHeaders(requireCsrf);
     let response: Response;
+
     try {
-      response = await fetch(url, { method: 'GET', headers });
+      response = await fetch(url, {
+        ...options,
+        headers: {
+          ...headers,
+          ...(options.headers as Record<string, string>),
+        },
+      });
     } catch (netErr: any) {
       throw new Error(
-        `Failed to connect to HackerRank tracks API: ${netErr.message}`,
+        `Failed to connect to HackerRank ${resourceName}: ${netErr.message}`,
       );
     }
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch tracks: ${response.status} ${response.statusText}`,
+        `HackerRank API error: ${response.status} ${response.statusText}`,
       );
     }
 
-    let data: any;
     try {
-      data = await response.json();
-    } catch {
-      throw new Error('Failed to parse tracks response from HackerRank');
+      return (await response.json()) as T;
+    } catch (jsonErr: any) {
+      throw new Error(
+        `Failed to parse JSON response from HackerRank: ${jsonErr?.message}`,
+      );
     }
+  }
+
+  async getTracks(): Promise<ITrack[]> {
+    const url = `${HackerRankAPIClient.BASE_URI}/contests/master/tracks`;
+    const data = await this.request<{ models?: any[] }>(
+      url,
+      {},
+      false,
+      'tracks API',
+    );
 
     return (data?.models || []).map((t: any) => ({
       id: t.id,
@@ -93,19 +118,16 @@ export class HackerRankAPIClient {
   async getChapters(trackSlug: string): Promise<string[]> {
     try {
       const url = `${HackerRankAPIClient.BASE_URI}/contests/master/tracks/${encodeURIComponent(trackSlug)}/chapters`;
-      const headers = await this.getHeaders();
-      const response = await fetch(url, { method: 'GET', headers });
-
-      if (!response.ok) {
-        return ['all'];
-      }
-
-      const data = (await response.json()) as any;
-      if (Array.isArray(data.models) && data.models.length > 0) {
+      const data = await this.request<{ models?: any[] }>(url);
+      if (Array.isArray(data?.models) && data.models.length > 0) {
         return data.models.map((c: any) => c.slug || c.name);
       }
       return ['all'];
-    } catch {
+    } catch (err: any) {
+      console.warn(
+        `[APIClient] Failed to fetch chapters for ${trackSlug}:`,
+        err?.message,
+      );
       return ['all'];
     }
   }
@@ -119,28 +141,7 @@ export class HackerRankAPIClient {
         ? `?offset=0&limit=200&filters[subdomains][]=${encodeURIComponent(chapterSlug)}&track_login=true`
         : '?offset=0&limit=200&track_login=true';
     const url = `${HackerRankAPIClient.BASE_URI}/contests/master/tracks/${encodeURIComponent(trackSlug)}/challenges${query}`;
-    const headers = await this.getHeaders();
-    let response: Response;
-    try {
-      response = await fetch(url, { method: 'GET', headers });
-    } catch (netErr: any) {
-      throw new Error(
-        `Failed to connect to HackerRank challenges API: ${netErr.message}`,
-      );
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch challenges: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    let data: any;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error('Failed to parse challenges response from HackerRank');
-    }
+    const data = await this.request<{ models?: any[] }>(url);
 
     return (data?.models || []).map((c: any) => ({
       id: c.id,
@@ -157,30 +158,7 @@ export class HackerRankAPIClient {
 
   async getChallenge(challengeSlug: string): Promise<IChallenge | null> {
     const url = `${HackerRankAPIClient.BASE_URI}/contests/master/challenges/${encodeURIComponent(challengeSlug)}`;
-    const headers = await this.getHeaders();
-    let response: Response;
-    try {
-      response = await fetch(url, { method: 'GET', headers });
-    } catch (netErr: any) {
-      throw new Error(
-        `Failed to connect to HackerRank challenge API (${challengeSlug}): ${netErr.message}`,
-      );
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch challenge ${challengeSlug}: ${response.status}`,
-      );
-    }
-
-    let data: any;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(
-        `Failed to parse challenge response for ${challengeSlug}`,
-      );
-    }
+    const data = await this.request<{ model?: any }>(url);
 
     const model = data?.model;
     if (!model) {
@@ -239,45 +217,28 @@ export class HackerRankAPIClient {
     const isLoggedIn = await this.authManager.isLoggedIn();
     if (!isLoggedIn) {
       throw new Error(
-        'You need to be logged in to HackerRank to run code. Please sign in via "HackerRank: Sign In with Cookie (Direct)" or "HackerRank: Sign In with Google".',
+        'You need to be logged in to HackerRank to run code. Please sign in via "HackerRank: Sign In with Cookie".',
       );
     }
 
     const url = `${HackerRankAPIClient.BASE_URI}/contests/master/challenges/${encodeURIComponent(challengeSlug)}/compile_tests`;
-    const headers = await this.getHeaders(true);
     const payload: CompileTestPayload = {
       code: solution.code,
       language: solution.language,
       customtestcase: false,
       playlist_slug: null,
     };
-    const body = JSON.stringify(payload);
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
+    const data = await this.request<any>(
+      url,
+      {
         method: 'POST',
-        headers,
-        body,
-      });
-    } catch (networkErr: any) {
-      throw new Error(`Failed to trigger compile tests: ${networkErr.message}`);
-    }
+        body: JSON.stringify(payload),
+      },
+      true,
+    );
 
-    if (!response.ok) {
-      throw new Error(
-        `Failed to run code: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    let data: any;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error('Invalid JSON response received from compile_tests API');
-    }
-
-    if (!data || !data.model || !data.model.id) {
+    if (!data?.model?.id) {
       const serverMessage =
         data?.message ||
         (Array.isArray(data?.errors) ? data.errors.join('; ') : undefined);
@@ -290,6 +251,21 @@ export class HackerRankAPIClient {
     }
 
     return data.model.id;
+  }
+
+  private isCompileDone(model: CompileTestResponse | undefined): boolean {
+    if (!model) return false;
+    const s = model.status;
+    const ss = model.status_string;
+    return (
+      s === 1 ||
+      s === 2 ||
+      (model as any).status === 'Complete' ||
+      (model as any).status === 'Error' ||
+      ss === 'Complete' ||
+      ss === 'Error' ||
+      Boolean(model.compilemessage && model.compilemessage.trim().length > 0)
+    );
   }
 
   async pollCompileTest(
@@ -331,24 +307,17 @@ export class HackerRankAPIClient {
         let data: any;
         try {
           data = await response.json();
-        } catch {
+        } catch (jsonErr: any) {
+          console.warn(
+            '[HackerRankAPIClient] Non-JSON response in compile test polling:',
+            jsonErr?.message,
+          );
           tries++;
           continue;
         }
 
         const model = data?.model as CompileTestResponse | undefined;
-        if (
-          model &&
-          (model.status === 1 ||
-            model.status === 2 ||
-            (model as any).status === 'Complete' ||
-            (model as any).status === 'Error' ||
-            model.status_string === 'Complete' ||
-            model.status_string === 'Error' ||
-            Boolean(
-              model.compilemessage && model.compilemessage.trim().length > 0,
-            ))
-        ) {
+        if (this.isCompileDone(model) && model) {
           const testCases: IRemoteRunTestCase[] = [];
           const statusArray = model.testcase_status || [];
           const msgArray = (model as any).testcase_message || [];
@@ -402,49 +371,28 @@ export class HackerRankAPIClient {
     const isLoggedIn = await this.authManager.isLoggedIn();
     if (!isLoggedIn) {
       throw new Error(
-        'You need to be logged in to HackerRank to submit code. Please sign in via "HackerRank: Sign In with Cookie (Direct)" or "HackerRank: Sign In with Google".',
+        'You need to be logged in to HackerRank to submit code. Please sign in via "HackerRank: Sign In with Cookie".',
       );
     }
 
     const url = `${HackerRankAPIClient.BASE_URI}/contests/master/challenges/${encodeURIComponent(challengeSlug)}/submissions`;
-    const headers = await this.getHeaders(true);
     const payload: SubmissionPayload = {
       code: solution.code,
       language: solution.language,
       contest_slug: 'master',
       playlist_slug: null,
     };
-    const body = JSON.stringify(payload);
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
+    const data = await this.request<any>(
+      url,
+      {
         method: 'POST',
-        headers,
-        body,
-      });
-    } catch (networkErr: any) {
-      throw new Error(
-        `Failed to submit code due to network failure: ${networkErr.message}`,
-      );
-    }
+        body: JSON.stringify(payload),
+      },
+      true,
+    );
 
-    if (!response.ok) {
-      throw new Error(
-        `Failed to submit code: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    let data: any;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(
-        'Invalid JSON response received from HackerRank submission API',
-      );
-    }
-
-    if (!data || !data.model || !data.model.id) {
+    if (!data?.model?.id) {
       const serverMessage =
         data?.message ||
         (Array.isArray(data?.errors) ? data.errors.join('; ') : undefined);
@@ -496,7 +444,11 @@ export class HackerRankAPIClient {
         let data: any;
         try {
           data = await response.json();
-        } catch {
+        } catch (jsonErr: any) {
+          console.warn(
+            '[HackerRankAPIClient] Non-JSON response in compile test polling:',
+            jsonErr?.message,
+          );
           tries++;
           continue;
         }

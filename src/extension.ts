@@ -21,50 +21,57 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.window.registerTreeDataProvider('challengesExplorer', treeProvider);
 
+  // Startup session verification (non-blocking)
+  void (async () => {
+    try {
+      const session = await authManager.getSession();
+      if (!session?.hackerrank_cookie) {
+        return;
+      }
+
+      outputChannel.appendLine('[Auth] Validating startup session...');
+      const user = await authManager.getCurrentUser();
+      if (user) {
+        outputChannel.appendLine(
+          `[Auth] Active session verified: ${user.username}.`,
+        );
+        treeProvider.refresh();
+      } else {
+        outputChannel.appendLine(
+          '[Auth] Saved session has expired or is invalid.',
+        );
+        const choice = await vscode.window.showWarningMessage(
+          'HackerRank: Session cookie is expired or invalid. Please sign in again.',
+          'Sign In with Cookie',
+        );
+        if (choice === 'Sign In with Cookie') {
+          await vscode.commands.executeCommand('hackerrank.signin');
+        }
+      }
+    } catch (err: any) {
+      outputChannel.appendLine(
+        `[Auth] Startup session check error: ${err.message}`,
+      );
+    }
+  })();
+
   const signinCmd = vscode.commands.registerCommand(
     'hackerrank.signin',
     async () => {
       try {
-        outputChannel.appendLine('[Auth] Initiating sign-in process...');
-        const success = await authManager.loginWithGoogle();
+        outputChannel.appendLine('[Auth] Initiating cookie sign-in...');
+        const success = await authManager.loginWithCookie();
         if (success) {
           outputChannel.appendLine(
-            '[Auth] Sign-in successful. Refreshing challenges tree.',
+            '[Auth] Cookie sign-in successful. Refreshing challenges tree.',
           );
           treeProvider.refresh();
         } else {
-          outputChannel.appendLine('[Auth] Sign-in was not completed.');
+          outputChannel.appendLine('[Auth] Cookie sign-in was not completed.');
         }
       } catch (err: any) {
         outputChannel.appendLine(`[Auth] Sign-in error: ${err.message}`);
         vscode.window.showErrorMessage(`Sign-in error: ${err.message}`);
-      }
-    },
-  );
-
-  const signinManualCmd = vscode.commands.registerCommand(
-    'hackerrank.signinManual',
-    async () => {
-      try {
-        outputChannel.appendLine('[Auth] Initiating manual cookie sign-in...');
-        const success = await authManager.loginWithManualCookie();
-        if (success) {
-          outputChannel.appendLine(
-            '[Auth] Manual cookie sign-in successful. Refreshing challenges tree.',
-          );
-          treeProvider.refresh();
-        } else {
-          outputChannel.appendLine(
-            '[Auth] Manual cookie sign-in was cancelled or invalid.',
-          );
-        }
-      } catch (err: any) {
-        outputChannel.appendLine(
-          `[Auth] Manual cookie sign-in error: ${err.message}`,
-        );
-        vscode.window.showErrorMessage(
-          `Manual cookie sign-in error: ${err.message}`,
-        );
       }
     },
   );
@@ -97,7 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
           } else {
             outputChannel.appendLine('[Status] Not logged in.');
             vscode.window.showWarningMessage(
-              'HackerRank: Not logged in. Run "HackerRank: Sign In" to connect.',
+              'HackerRank: Not logged in. Run "HackerRank: Sign In with Cookie" to connect.',
             );
           }
         }
@@ -196,7 +203,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     signinCmd,
-    signinManualCmd,
     checkStatusCmd,
     logoutCmd,
     refreshCmd,
