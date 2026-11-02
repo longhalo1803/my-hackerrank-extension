@@ -172,24 +172,28 @@ export function activate(context: vscode.ExtensionContext) {
           defaultLang,
         );
 
-        // Open solution file in primary editor
-        const doc = await vscode.workspace.openTextDocument(solutionPath);
-        await vscode.window.showTextDocument(doc, {
-          viewColumn: vscode.ViewColumn.One,
-        });
-
-        // Open Webview panel with problem description and action controls side-by-side
-        ProblemWebviewPanel.render(
-          context.extensionUri,
-          challenge,
-          trackSlug,
-          chapterSlug,
-          solutionPath,
-          defaultLang,
-          apiClient,
-          solutionManager,
-          context.globalState,
-        );
+        // Single-window workbench: render or reload active challenge in Webview without opening standalone editor tabs
+        if (ProblemWebviewPanel.currentPanel) {
+          ProblemWebviewPanel.currentPanel.loadChallenge(
+            challenge,
+            trackSlug,
+            chapterSlug,
+            solutionPath,
+            defaultLang,
+          );
+        } else {
+          ProblemWebviewPanel.render(
+            context.extensionUri,
+            challenge,
+            trackSlug,
+            chapterSlug,
+            solutionPath,
+            defaultLang,
+            apiClient,
+            solutionManager,
+            context.globalState,
+          );
+        }
       } catch (err: any) {
         outputChannel.appendLine(
           `[Error] Failed to open challenge "${challengeSlug}": ${err.message}`,

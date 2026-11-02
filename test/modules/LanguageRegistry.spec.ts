@@ -44,5 +44,31 @@ describe('LanguageRegistry', () => {
     expect(LanguageRegistry.getFallbackBoilerplate('typescript')).toBe(
       '// Enter your code here\n',
     );
+    expect(LanguageRegistry.getFallbackBoilerplate('mysql')).toBe(
+      '-- Enter your query here\n',
+    );
+    expect(LanguageRegistry.getFallbackBoilerplate('oracle')).toBe(
+      '-- Enter your query here\n',
+    );
+    expect(LanguageRegistry.getFallbackBoilerplate('db2')).toBe(
+      '-- Enter your query here\n',
+    );
+  });
+
+  it('correctly maps SQL family dialects', () => {
+    const mysql = LanguageRegistry.get('mysql');
+    expect(mysql.displayName).toBe('MySQL');
+    expect(mysql.extension).toBe('.sql');
+    expect(mysql.vscodeLanguageId).toBe('sql');
+
+    const oracle = LanguageRegistry.get('oracle');
+    expect(oracle.displayName).toBe('Oracle SQL');
+    expect(oracle.extension).toBe('.sql');
+    expect(oracle.vscodeLanguageId).toBe('sql');
+
+    const tsql = LanguageRegistry.get('tsql');
+    expect(tsql.displayName).toBe('MS SQL Server');
+    expect(tsql.extension).toBe('.sql');
+    expect(tsql.vscodeLanguageId).toBe('sql');
   });
 });

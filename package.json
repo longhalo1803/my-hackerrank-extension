@@ -80,14 +80,12 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./ && npm run copy-assets",
-    "copy-assets": "copyfiles -u 1 src/media/**/* out/ || true",
+    "compile": "node -e \"const fs = require('fs'); fs.rmSync('out', { recursive: true, force: true });\" && tsc -p ./ && npm run copy-assets && npm run prune-monaco",
+    "copy-assets": "node -e \"const fs = require('fs'); fs.mkdirSync('media/katex', { recursive: true }); fs.cpSync('node_modules/katex/dist', 'media/katex', { recursive: true });\" && (copyfiles -u 1 src/media/**/* out/ || true)",
+    "prune-monaco": "node scripts/prune-monaco.js",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "test": "jest --coverage"
-  },
-  "dependencies": {
-    "katex": "^0.16.9"
   },
   "devDependencies": {
     "@types/jest": "^29.5.10",
@@ -99,6 +97,8 @@
     "copyfiles": "^2.4.1",
     "eslint": "^8.54.0",
     "jest": "^29.7.0",
+    "katex": "^0.16.9",
+    "monaco-editor": "^0.57.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.0"
   }

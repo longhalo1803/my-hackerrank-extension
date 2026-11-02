@@ -3,24 +3,37 @@
 [![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue?logo=visualstudiocode)](https://marketplace.visualstudio.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-**HackerRank Native** is a lightweight, cloud-native VS Code and Antigravity IDE extension that allows you to browse, code, test, and submit HackerRank challenges directly within your editor — without touching your local file workspace or installing local language runtimes.
+**HackerRank Native** is a lightweight, cloud-native VS Code and Antigravity IDE extension that allows you to browse, code, test, and submit HackerRank challenges directly within a unified workbench — without touching your local file workspace or installing local language compilers.
 
 ---
 
+![alt text](/media/preview.png)
+
 ## ✨ Features
 
-- **Explorer Tree View**: Browse tracks (Algorithms, Data Structures, etc.), chapters, and challenges right from the Activity Bar.
-- **Visual Solved Indicators**: Instant recognition of solved challenges with green checkmarks (`✓`) and unsolved challenges with empty indicators.
-- **Non-Invasive Sandbox**: Solution files are safely created and managed in global extension storage. Your project workspace is never polluted.
-- **Multi-Language Support**: Switch languages seamlessly via QuickPick (`Python 3`, `TypeScript`, `C++`, `Java 8`, `Go`, `Rust`, `C#`, etc.) with automatic template assembly and language persistence.
-- **Side-by-Side Webview**: Beautiful problem descriptions rendered with KaTeX for mathematical notation, with action buttons to Run, Submit, Change Language, and Export.
+- **Single-Window Hallmark Workbench**:
+  - **Problem Statement (Left Pane)**: Formatted challenge descriptions with KaTeX mathematical notation, difficulty tags, and track/chapter breadcrumbs.
+  - **Embedded Monaco Editor (Right Pane Top)**: Full-featured code editor with syntax highlighting, automatic indentation, auto-save to global extension sandbox, and bidirectional clipboard copy/paste bridge (`Ctrl+C`/`Cmd+C`, `Ctrl+V`/`Cmd+V`).
+  - **Interactive Test Console (Right Pane Bottom)**: Test case cards displaying compiler input, expected output, actual output, runtime error logs, and evaluation verdict banners.
+- **Dialect & Multi-Language Support**:
+  - **SQL Family**: MySQL, Oracle SQL, MS SQL Server (T-SQL), IBM DB2.
+  - **C / C++**: C, C++14, C++20.
+  - **Python**: Python 3, PyPy, PyPy 3.
+  - **General Purpose**: Java, C#, Go, Rust, Ruby, PHP, Swift, Kotlin, TypeScript, JavaScript, Bash / Shell, Scala, Clojure, Perl, R, Lua, etc.
+  - Automatic language boilerplate assembly with local fallback templates.
+- **Explorer Tree View**:
+  - Browse tracks (Algorithms, Data Structures, SQL, etc.), chapters, and challenges directly from the Activity Bar.
+  - Visual checkmarks (`✓`) for solved challenges and clean difficulty indicators.
 - **100% Cloud Remote Execution**:
-  - **Run Code**: Triggers remote sample tests via HackerRank compile APIs.
-  - **Submit Solution**: Submits your solution to the official HackerRank evaluation judge and displays testcase verdicts in real-time.
-- **Export Solution**: Save your finished code to any local folder or project workspace whenever you choose.
-- **Secure Session Authentication**:
-  - **Session Cookie Sign In**: Direct cookie sign-in compatible with all login types (Google, GitHub, LinkedIn, Email/Password) with automatic CSRF token extraction.
-  - **Secure Storage**: Credentials stored via VS Code's OS Keyring (`SecretStorage`).
+  - **Run Code**: Compiles and executes code remotely against sample test cases via HackerRank compile APIs.
+  - **Submit Solution**: Evaluates code against full hidden test suites on the official HackerRank evaluation judge.
+- **Non-Invasive Sandbox Storage**:
+  - Solutions are safely isolated in VS Code global extension storage. Your project workspace is never polluted with challenge files.
+- **Export Solution**:
+  - Export your working solution to any local directory or project folder at any time.
+- **Secure Authentication**:
+  - Session cookie sign-in (`_hrank_session`) compatible with Google, GitHub, LinkedIn, and Email/Password logins.
+  - Automatic CSRF token handshake and storage in your OS native keychain (`SecretStorage`).
 
 ---
 
@@ -40,19 +53,21 @@ code --install-extension hackerrank-native-0.1.0.vsix
 
 ### 2. Sign In
 
-1. Open HackerRank in your browser and sign in (Google, GitHub, LinkedIn, or Email/Password).
+1. Open [HackerRank](https://www.hackerrank.com) in your browser and sign in.
 2. Open DevTools (`F12`), go to **Application** (or **Storage**) > **Cookies** > `https://www.hackerrank.com`, and copy the value of `_hrank_session`.
 3. In VS Code, open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
-4. Run **`HackerRank: Sign In with Cookie`** and paste your `_hrank_session` cookie. CSRF token will be automatically extracted.
+4. Run **`HackerRank: Sign In with Cookie`** and paste your `_hrank_session` cookie. The CSRF token is negotiated automatically.
 
 ### 3. Solving Challenges
 
-1. Open the **HackerRank** icon on the Activity Bar.
-2. Expand a Track (e.g. _Algorithms_) and Chapter (e.g. _Warmup_).
-3. Click any challenge to open the problem description side-by-side with your solution file.
-4. Write your solution in the editor tab.
-5. Click **▶ Run Code** to test against sample test cases, or **⬆ Submit Solution** to submit to the official judge.
-6. Click **💾 Save Solution...** to export your code to your local machine.
+1. Click the **HackerRank** icon on the Activity Bar.
+2. Expand a Track (e.g. *Algorithms*) and Chapter (e.g. *Warmup*).
+3. Click any challenge to open the single-window workbench.
+4. Select your preferred programming language from the top bar dropdown.
+5. Code directly in the embedded Monaco Editor.
+6. Click **Run Code** to test against sample test cases in the bottom console.
+7. Click **Submit Solution** to run against hidden test cases and receive your score.
+8. Click **Export** to save a copy of your solution to any local workspace folder.
 
 ---
 
@@ -60,7 +75,7 @@ code --install-extension hackerrank-native-0.1.0.vsix
 
 | Command                        | Title                                         | Description                                    |
 | :----------------------------- | :-------------------------------------------- | :--------------------------------------------- |
-| `hackerrank.signin`            | `HackerRank: Sign In (via HackerRank Cookie)` | Sign in by pasting your session cookie.       |
+| `hackerrank.signin`            | `HackerRank: Sign In (via HackerRank Cookie)` | Sign in by pasting your session cookie.        |
 | `hackerrank.checkStatus`       | `HackerRank: Check Login Status`              | Verify current active session and username.    |
 | `hackerrank.logout`            | `HackerRank: Sign Out`                        | Clear saved credentials from secure storage.   |
 | `hackerrank.refreshChallenges` | `HackerRank: Refresh Challenges`              | Reload tracks, chapters, and challenge status. |
@@ -69,26 +84,27 @@ code --install-extension hackerrank-native-0.1.0.vsix
 
 ## 🔒 Security & Privacy
 
-- **No Hardcoded Credentials**: Your session cookies and CSRF tokens are stored exclusively in your operating system's native keychain (`vscode.secrets`) with plaintext fallback excluded from cloud sync (`setKeysForSync([])`).
-- **Path Traversal Protection**: All file paths and language slugs are strictly validated (`/^[a-z0-9_-]+$/`).
-- **Content Security Policy**: Webviews enforce strict CSP headers, nonce-based script execution, and sanitized HTML descriptions.
+- **OS Keyring Encryption**: Session cookies and CSRF tokens are encrypted via VS Code's `vscode.secrets` API (OS Keychain / Secret Service).
+- **Strict Content Security Policy**: Embedded webviews enforce strict CSP headers with random cryptographic nonces, blocking inline script execution and unauthorized network endpoints.
+- **Path Traversal Protection**: Track slugs, challenge slugs, and language IDs are strictly sanitized (`/^[a-zA-Z0-9_-]+$/`).
+- **Workspace Isolation**: Solution files and cached outputs reside entirely in the global extension data folder, leaving your workspace undisturbed.
 
 ---
 
-## 💻 Development & Testing
+## 💻 Development & Packaging
 
 ```bash
 # Install dependencies
 npm install
 
-# Compile TypeScript
+# Compile TypeScript and bundle pruned Monaco & KaTeX assets
 npm run compile
 
-# Run automated test suite (Jest)
+# Run full test suite with coverage
 npm test
 
-# Lint codebase
-npm run lint
+# Build production VSIX package
+npx @vscode/vsce package
 ```
 
 ---

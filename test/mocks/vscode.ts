@@ -74,13 +74,30 @@ export class EventEmitter<T = any> {
 }
 
 export const Uri = {
-  file: (path: string) => ({ fsPath: path, path, scheme: 'file' }),
-  parse: (uri: string) => ({ fsPath: uri, path: uri, scheme: 'https' }),
+  file: (path: string) => ({
+    fsPath: path,
+    path,
+    scheme: 'file',
+    toString: () => path,
+  }),
+  parse: (uri: string) => ({
+    fsPath: uri,
+    path: uri,
+    scheme: 'https',
+    toString: () => uri,
+  }),
 };
 
 export const commands = {
   registerCommand: jest.fn(),
   executeCommand: jest.fn(),
+};
+
+export const env = {
+  clipboard: {
+    readText: jest.fn(async () => ''),
+    writeText: jest.fn(async (_text: string) => {}),
+  },
 };
 
 export class MockSecretStorage {
