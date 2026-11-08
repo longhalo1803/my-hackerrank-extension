@@ -3,6 +3,15 @@ docs/**
 coverage/**
 test/**
 src/**
+scripts/**
+media/demo-hallmark.html
+media/katex/contrib/**
+media/katex/*.js
+media/katex/*.mjs
+media/katex/*.ts
+media/katex/README.md
+node_modules/**
+**/*.map
 tsconfig.json
 jest.config.js
 .eslintrc.json

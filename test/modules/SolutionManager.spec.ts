@@ -84,6 +84,26 @@ describe('SolutionManager', () => {
     expect(fs.readFileSync(filePath2, 'utf8')).toBe('// user custom edit');
   });
 
+  it('restores sample boilerplate if existing solution file on disk is empty', () => {
+    const filePath = solutionManager.prepareSolutionFile(
+      sampleChallenge,
+      'algorithms',
+      'typescript',
+    );
+    // Simulate corrupted/empty save on disk
+    fs.writeFileSync(filePath, '   \n  ', 'utf8');
+
+    const restoredPath = solutionManager.prepareSolutionFile(
+      sampleChallenge,
+      'algorithms',
+      'typescript',
+    );
+    expect(restoredPath).toBe(filePath);
+    expect(fs.readFileSync(restoredPath, 'utf8')).toContain(
+      'function simpleArraySum() {}',
+    );
+  });
+
   it('exports solution via vscode showSaveDialog', async () => {
     const solutionPath = solutionManager.prepareSolutionFile(
       sampleChallenge,

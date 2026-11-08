@@ -2,6 +2,12 @@ import { ILanguageInfo } from '../types/hackerrank';
 
 export class LanguageRegistry {
   private static readonly LANGUAGES: Record<string, ILanguageInfo> = {
+    bash: {
+      id: 'bash',
+      displayName: 'Bash',
+      extension: '.sh',
+      vscodeLanguageId: 'shellscript',
+    },
     c: { id: 'c', displayName: 'C', extension: '.c', vscodeLanguageId: 'c' },
     clojure: {
       id: 'clojure',
@@ -32,6 +38,12 @@ export class LanguageRegistry {
       displayName: 'C#',
       extension: '.cs',
       vscodeLanguageId: 'csharp',
+    },
+    db2: {
+      id: 'db2',
+      displayName: 'IBM DB2',
+      extension: '.sql',
+      vscodeLanguageId: 'sql',
     },
     erlang: {
       id: 'erlang',
@@ -93,11 +105,23 @@ export class LanguageRegistry {
       extension: '.lua',
       vscodeLanguageId: 'lua',
     },
+    mysql: {
+      id: 'mysql',
+      displayName: 'MySQL',
+      extension: '.sql',
+      vscodeLanguageId: 'sql',
+    },
     objectivec: {
       id: 'objectivec',
       displayName: 'Objective-C',
       extension: '.m',
       vscodeLanguageId: 'objective-c',
+    },
+    oracle: {
+      id: 'oracle',
+      displayName: 'Oracle SQL',
+      extension: '.sql',
+      vscodeLanguageId: 'sql',
     },
     perl: {
       id: 'perl',
@@ -111,9 +135,21 @@ export class LanguageRegistry {
       extension: '.php',
       vscodeLanguageId: 'php',
     },
+    pypy: {
+      id: 'pypy',
+      displayName: 'PyPy',
+      extension: '.py',
+      vscodeLanguageId: 'python',
+    },
     pypy3: {
       id: 'pypy3',
       displayName: 'PyPy 3',
+      extension: '.py',
+      vscodeLanguageId: 'python',
+    },
+    python: {
+      id: 'python',
+      displayName: 'Python',
       extension: '.py',
       vscodeLanguageId: 'python',
     },
@@ -142,11 +178,23 @@ export class LanguageRegistry {
       extension: '.scala',
       vscodeLanguageId: 'scala',
     },
+    sql: {
+      id: 'sql',
+      displayName: 'SQL',
+      extension: '.sql',
+      vscodeLanguageId: 'sql',
+    },
     swift: {
       id: 'swift',
       displayName: 'Swift',
       extension: '.swift',
       vscodeLanguageId: 'swift',
+    },
+    tsql: {
+      id: 'tsql',
+      displayName: 'MS SQL Server',
+      extension: '.sql',
+      vscodeLanguageId: 'sql',
     },
     typescript: {
       id: 'typescript',
@@ -157,10 +205,49 @@ export class LanguageRegistry {
   };
 
   public static get(langId: string): ILanguageInfo {
-    const existing = this.LANGUAGES[langId];
+    const key = langId.toLowerCase();
+    const existing = this.LANGUAGES[key];
     if (existing) {
       return existing;
     }
+
+    // Dynamic heuristic detection for database/dialects
+    if (key.includes('sql') || key.includes('db') || key.includes('oracle')) {
+      return {
+        id: langId,
+        displayName: langId.toUpperCase(),
+        extension: '.sql',
+        vscodeLanguageId: 'sql',
+      };
+    }
+
+    if (key.includes('py')) {
+      return {
+        id: langId,
+        displayName: langId.toUpperCase(),
+        extension: '.py',
+        vscodeLanguageId: 'python',
+      };
+    }
+
+    if (key.includes('sh') || key.includes('bash')) {
+      return {
+        id: langId,
+        displayName: langId.toUpperCase(),
+        extension: '.sh',
+        vscodeLanguageId: 'shellscript',
+      };
+    }
+
+    if (key.includes('cpp')) {
+      return {
+        id: langId,
+        displayName: langId.toUpperCase(),
+        extension: '.cpp',
+        vscodeLanguageId: 'cpp',
+      };
+    }
+
     // Dynamic fallback for any unlisted language
     return {
       id: langId,
@@ -178,13 +265,17 @@ export class LanguageRegistry {
 
   public static getFallbackBoilerplate(langId: string): string {
     const lang = this.get(langId);
-    if (['python3', 'pypy3', 'ruby', 'perl', 'r'].includes(lang.id)) {
+    const key = lang.id.toLowerCase();
+    if (['db2', 'mysql', 'oracle', 'tsql', 'sql'].includes(key) || key.includes('sql') || key.includes('db')) {
+      return '-- Enter your query here\n';
+    }
+    if (['python', 'python3', 'pypy', 'pypy3', 'ruby', 'perl', 'r', 'bash', 'shell'].includes(key)) {
       return '# Enter your code here\n';
     }
-    if (['clojure'].includes(lang.id)) {
+    if (['clojure'].includes(key)) {
       return ';; Enter your code here\n';
     }
-    if (['erlang'].includes(lang.id)) {
+    if (['erlang'].includes(key)) {
       return '% Enter your code here\n';
     }
     return '// Enter your code here\n';

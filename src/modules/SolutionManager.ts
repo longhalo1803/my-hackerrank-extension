@@ -57,7 +57,10 @@ export class SolutionManager {
   public assembleBoilerplate(challenge: IChallenge, langId: string): string {
     const head =
       challenge.languagesBoilerplate[`${langId}_template_head`] || '';
-    const body = challenge.languagesBoilerplate[`${langId}_template`] || '';
+    const body =
+      challenge.languagesBoilerplate[`${langId}_template`] ||
+      challenge.languagesBoilerplate[langId] ||
+      '';
     const tail =
       challenge.languagesBoilerplate[`${langId}_template_tail`] || '';
 
@@ -82,7 +85,12 @@ export class SolutionManager {
       langId,
     );
 
-    if (!fs.existsSync(solutionPath)) {
+    const fallback = LanguageRegistry.getFallbackBoilerplate(langId).trim();
+    const existing = fs.existsSync(solutionPath)
+      ? fs.readFileSync(solutionPath, 'utf8').trim()
+      : '';
+
+    if (!existing || existing === fallback) {
       const code = this.assembleBoilerplate(challenge, langId);
       fs.writeFileSync(solutionPath, code, 'utf8');
     }
