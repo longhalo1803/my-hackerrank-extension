@@ -258,53 +258,13 @@ export class ProblemWebviewPanel {
       return;
     }
 
-    const newLangId = picked.langId;
-    this.currentLanguage = newLangId;
-    if (this.globalState) {
-      try {
-        await this.globalState.update('hackerrank.lastUsedLanguage', newLangId);
-      } catch (err: any) {
-        console.warn(
-          '[ProblemWebviewPanel] Non-critical persistence failure for lastUsedLanguage:',
-          err?.message,
-        );
-      }
-    }
-
-    this.currentSolutionPath = this.solutionManager.prepareSolutionFile(
-      this.challenge,
-      this.trackSlug,
-      newLangId,
-    );
-
-    // Update Webview header
-    this.panel.webview.html = this.getHtmlForWebview();
-
-    // Reveal new solution document in editor
-    const doc = await vscode.workspace.openTextDocument(
-      this.currentSolutionPath,
-    );
-    await vscode.window.showTextDocument(doc, {
-      viewColumn: vscode.ViewColumn.One,
-    });
+    await this.applyLanguageChange(picked.langId);
   }
 
-  private async getActiveCode(): Promise<string> {
-    const openDoc = vscode.workspace.textDocuments.find(
-      (d) => d.uri.fsPath === this.currentSolutionPath,
-    );
-    if (openDoc) {
-      if (openDoc.isDirty) {
-        try {
-          await openDoc.save();
-        } catch (err: any) {
-          console.warn(
-            '[ProblemWebviewPanel] Auto-save before run/submit failed:',
-            err?.message,
-          );
-        }
-      }
-      return openDoc.getText();
+  private async getActiveCode(passedCode?: string): Promise<string> {
+    if (typeof passedCode === 'string' && passedCode.length > 0) {
+      this.handleAutoSaveCode(passedCode);
+      return passedCode;
     }
     if (fs.existsSync(this.currentSolutionPath)) {
       return fs.readFileSync(this.currentSolutionPath, 'utf8');

@@ -50,17 +50,10 @@ code --install-extension hackerrank-native-0.2.0.vsix
 
 ### 2. Sign In
 
-<<<<<<< HEAD
-1. Open HackerRank in your browser and sign in (Google, GitHub, LinkedIn, or Email/Password).
+1. Open [HackerRank](https://www.hackerrank.com) in your browser and sign in (Google, GitHub, LinkedIn, or Email/Password).
 2. Open DevTools (`F12`), go to **Application** (or **Storage**) > **Cookies** > `https://www.hackerrank.com`, and copy the value of `_hrank_session`.
 3. In VS Code, open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
 4. Run **`HackerRank: Sign In with Cookie`** and paste your `_hrank_session` cookie. CSRF token will be automatically extracted.
-=======
-1. Open [HackerRank](https://www.hackerrank.com) in your browser and sign in.
-2. Open DevTools (`F12`), go to **Application** (or **Storage**) > **Cookies** > `https://www.hackerrank.com`, and copy the value of `_hrank_session`.
-3. In VS Code, open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
-4. Run **`HackerRank: Sign In with Cookie`** and paste your `_hrank_session` cookie. The CSRF token is negotiated automatically.
->>>>>>> origin/feat/update-ui-ux
 
 ### 3. Solving Challenges
 
